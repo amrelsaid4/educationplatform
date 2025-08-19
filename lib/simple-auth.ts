@@ -1,7 +1,5 @@
-import { signIn, signUp, AuthUser } from './auth-utils'
-
-// Simple session management using localStorage
-const SESSION_KEY = 'eduplatform_session'
+import { signIn, signUp, AuthUser, signOut } from './auth-utils'
+import { supabase } from './supabase'
 
 export interface Session {
   user: AuthUser
@@ -19,40 +17,59 @@ export const createSession = (user: AuthUser): Session => {
     expiresAt
   }
   
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
   return session
 }
 
-export const getSession = (): Session | null => {
+export const getSession = async (): Promise<Session | null> => {
   try {
-    const sessionData = localStorage.getItem(SESSION_KEY)
-    if (!sessionData) return null
+    const { data: { session }, error } = await supabase.auth.getSession()
     
-    const session: Session = JSON.parse(sessionData)
-    
-    // Check if session is expired
-    if (Date.now() > session.expiresAt) {
-      localStorage.removeItem(SESSION_KEY)
+    if (error || !session) {
       return null
     }
-    
-    return session
+
+    // Get user profile from users table
+    let userProfile = null;
+    try {
+      const { data: profileData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+      userProfile = profileData;
+    } catch (profileError) {
+      console.log('Profile not found in users table, using auth metadata');
+    }
+
+    const user: AuthUser = {
+      id: session.user.id,
+      name: userProfile?.name || session.user.user_metadata?.name || '',
+      email: session.user.email || '',
+      role: userProfile?.role || session.user.user_metadata?.role || 'student'
+    }
+
+    return {
+      user,
+      token: session.access_token,
+      expiresAt: session.expires_at ? session.expires_at * 1000 : Date.now() + (24 * 60 * 60 * 1000)
+    }
   } catch (error) {
-    localStorage.removeItem(SESSION_KEY)
+    console.error('Get session error:', error)
     return null
   }
 }
 
-export const clearSession = (): void => {
-  localStorage.removeItem(SESSION_KEY)
+export const clearSession = async (): Promise<void> => {
+  await signOut()
 }
 
-export const isAuthenticated = (): boolean => {
-  return getSession() !== null
+export const isAuthenticated = async (): Promise<boolean> => {
+  const session = await getSession()
+  return session !== null
 }
 
-export const getCurrentUser = (): AuthUser | null => {
-  const session = getSession()
+export const getCurrentUser = async (): Promise<AuthUser | null> => {
+  const session = await getSession()
   return session?.user || null
 }
 
@@ -66,7 +83,7 @@ export const loginUser = async (email: string, password: string) => {
     }
     
     if (user) {
-      const session = createSession(user)
+      const session = await getSession()
       return { success: true, user, session }
     }
     
@@ -80,7 +97,8 @@ export const registerUser = async (userData: {
   name: string
   email: string
   password: string
-  role: 'teacher' | 'student'
+  role: 'admin' | 'teacher' | 'student'
+  phone?: string
 }) => {
   try {
     const { data, error } = await signUp(userData)
@@ -90,7 +108,8 @@ export const registerUser = async (userData: {
     }
     
     if (data) {
-      // Auto-login after registration
+      // For development: Auto-login regardless of email confirmation
+      console.log('Development mode: Auto-login after registration')
       const loginResult = await loginUser(userData.email, userData.password)
       return loginResult
     }
@@ -101,6 +120,6 @@ export const registerUser = async (userData: {
   }
 }
 
-export const logoutUser = (): void => {
-  clearSession()
+export const logoutUser = async (): Promise<void> => {
+  await clearSession()
 }
