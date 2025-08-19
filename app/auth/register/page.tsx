@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { registerUser } from "@/lib/simple-auth";
 import Image from "next/image";
 
@@ -15,7 +14,7 @@ export default function RegisterPage() {
     phone: "",
     password: "",
     confirmPassword: "",
-    role: "student" as "student" | "teacher",
+    role: "student" as "student" | "teacher" | "admin",
     agreeToTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -54,11 +53,20 @@ export default function RegisterPage() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: formData.role
+        role: formData.role,
+        phone: formData.phone
       });
 
       if (!result.success) {
-        setError(result.error?.message || "فشل في إنشاء الحساب");
+        let errorMessage = "فشل في إنشاء الحساب";
+        if ('error' in result && result.error) {
+          if (typeof result.error === 'string') {
+            errorMessage = result.error;
+          } else if (typeof result.error === 'object' && result.error && 'message' in result.error) {
+            errorMessage = (result.error as any).message;
+          }
+        }
+        setError(errorMessage);
         setIsLoading(false);
         return;
       }
@@ -66,6 +74,9 @@ export default function RegisterPage() {
       if (result.user) {
         // Redirect based on role
         switch (result.user.role) {
+          case 'admin':
+            router.push("/dashboard/admin");
+            break;
           case 'teacher':
             router.push("/dashboard/teacher");
             break;
@@ -95,11 +106,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#49BBBD]/10 via-white to-[#136CB5]/10 dark:from-[#000000] dark:via-[#136CB5]/20 dark:to-[#49BBBD]/20">
-      {/* Theme Toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <ThemeToggle />
-      </div>
-
       <div className="flex w-full">
         {/* Left Side - Image */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
@@ -110,18 +116,22 @@ export default function RegisterPage() {
             className="object-cover scale-105"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/40 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/60 via-[#000000]/40 to-transparent"></div>
           <div className="relative z-20 flex items-center justify-center h-full">
             <div className="text-center text-white p-12 max-w-lg">
               <div className="mb-8">
-                <div className="w-20 h-20 bg-[#49BBBD]/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-[#49BBBD]/30 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                   </svg>
                 </div>
               </div>
-              <h1 className="text-5xl font-bold mb-6 leading-tight">انضم إلينا اليوم</h1>
-              <p className="text-xl opacity-95 leading-relaxed">ابدأ رحلة التعلم مع منصتنا المتطورة</p>
+              <h1 className="text-6xl font-black mb-6 leading-tight text-white drop-shadow-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                انضم إلينا اليوم
+              </h1>
+              <p className="text-2xl font-bold opacity-100 leading-relaxed text-[#E0F2FE] drop-shadow-lg" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.6)' }}>
+                ابدأ رحلة التعلم مع منصتنا المتطورة
+              </p>
             </div>
           </div>
         </div>
@@ -223,6 +233,7 @@ export default function RegisterPage() {
                   >
                     <option value="student">طالب</option>
                     <option value="teacher">معلم</option>
+                    <option value="admin">أدمن</option>
                   </select>
                 </div>
                 
@@ -311,7 +322,7 @@ export default function RegisterPage() {
                   {isLoading ? (
                     <div className="flex items-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                      إنشاء الحساب...
+                      {error && error.includes('انتظار') ? 'جاري الانتظار...' : 'إنشاء الحساب...'}
                     </div>
                   ) : (
                     "إنشاء الحساب"

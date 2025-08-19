@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { loginUser } from "@/lib/simple-auth";
 import Image from "next/image";
 
@@ -70,11 +69,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#49BBBD]/10 via-white to-[#136CB5]/10 dark:from-[#000000] dark:via-[#136CB5]/20 dark:to-[#49BBBD]/20">
-      {/* Theme Toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <ThemeToggle />
-      </div>
-
       <div className="flex w-full">
         {/* Left Side - Image */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
@@ -85,18 +79,22 @@ export default function LoginPage() {
             className="object-cover scale-105"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/40 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#000000]/60 via-[#000000]/40 to-transparent"></div>
           <div className="relative z-20 flex items-center justify-center h-full">
             <div className="text-center text-white p-12 max-w-lg">
               <div className="mb-8">
-                <div className="w-20 h-20 bg-[#49BBBD]/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-20 h-20 bg-[#49BBBD]/30 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl">
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
               </div>
-              <h1 className="text-5xl font-bold mb-6 leading-tight">مرحباً بعودتك</h1>
-              <p className="text-xl opacity-95 leading-relaxed">استعد لرحلة التعلم المثيرة مع منصتنا المتطورة</p>
+              <h1 className="text-6xl font-black mb-6 leading-tight text-white drop-shadow-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+                مرحباً بعودتك
+              </h1>
+              <p className="text-2xl font-bold opacity-100 leading-relaxed text-[#E0F2FE] drop-shadow-lg" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.6)' }}>
+                استعد لرحلة التعلم المثيرة مع منصتنا المتطورة
+              </p>
             </div>
           </div>
         </div>
