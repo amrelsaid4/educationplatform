@@ -31,6 +31,7 @@ interface DashboardLayoutProps {
 const navigationItems = {
   student: [
     { name: "الرئيسية", href: "/dashboard/student", icon: HomeIcon },
+    { name: "الكورسات المتاحة", href: "/courses", icon: BookOpenIcon },
     { name: "كورساتي", href: "/dashboard/student/courses", icon: BookOpenIcon },
     { name: "المهام", href: "/dashboard/student/assignments", icon: ClipboardDocumentCheckIcon },
     { name: "المجتمع", href: "/dashboard/student/community", icon: ChatBubbleLeftRightIcon },
@@ -39,6 +40,7 @@ const navigationItems = {
   teacher: [
     { name: "الرئيسية", href: "/dashboard/teacher", icon: HomeIcon },
     { name: "كورساتي", href: "/dashboard/teacher/courses", icon: BookOpenIcon },
+    { name: "إضافة كورس جديد", href: "/dashboard/teacher/courses/create", icon: BookOpenIcon },
     { name: "المهام", href: "/dashboard/teacher/assignments", icon: ClipboardDocumentCheckIcon },
     { name: "الطلاب", href: "/dashboard/teacher/students", icon: UserIcon },
     { name: "التحليلات", href: "/dashboard/teacher/analytics", icon: ChartBarIcon },
@@ -47,6 +49,7 @@ const navigationItems = {
     { name: "الرئيسية", href: "/dashboard/admin", icon: HomeIcon },
     { name: "المستخدمون", href: "/dashboard/admin/users", icon: UserIcon },
     { name: "الكورسات", href: "/dashboard/admin/courses", icon: BookOpenIcon },
+    { name: "جميع الكورسات", href: "/courses", icon: BookOpenIcon },
     { name: "التحليلات", href: "/dashboard/admin/analytics", icon: ChartBarIcon },
     { name: "الإعدادات", href: "/dashboard/admin/settings", icon: CogIcon },
   ],
