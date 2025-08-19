@@ -64,6 +64,10 @@ const LandingPage: React.FC = () => {
     router.push('/auth/register');
   };
 
+  const navigateToCourses = () => {
+    router.push('/courses');
+  };
+
   const stats = [
     { number: '15K+', label: 'طالب', icon: Users },
     { number: '75%', label: 'إجمالي النجاح', icon: Award },
@@ -168,6 +172,12 @@ const LandingPage: React.FC = () => {
           {/* Auth Buttons & Theme Toggle with enhanced styling */}
           <div className="hidden lg:flex items-center space-x-6" style={{ flexDirection: 'row-reverse' }}>
             <button
+              onClick={navigateToCourses}
+              className="px-6 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              الكورسات
+            </button>
+            <button
               onClick={navigateToLogin}
               className="px-6 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
             >
@@ -211,6 +221,12 @@ const LandingPage: React.FC = () => {
               <a href="#courses" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الدورات
               </a>
+              <button
+                onClick={() => { navigateToCourses(); toggleMenu(); }}
+                className="block w-full text-right py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300"
+              >
+                الكورسات المتاحة
+              </button>
               <a href="#features" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الميزات
               </a>
@@ -221,6 +237,12 @@ const LandingPage: React.FC = () => {
                 اتصل بنا
               </a>
               <div className="pt-4 space-y-2">
+                <button
+                  onClick={navigateToCourses}
+                  className="w-full px-6 py-2.5 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium"
+                >
+                  الكورسات
+                </button>
                 <button
                   onClick={navigateToLogin}
                   className="w-full px-6 py-2.5 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium"
