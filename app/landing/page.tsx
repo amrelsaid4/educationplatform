@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useTheme } from '../../components/providers/ThemeProvider';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Menu,
   X,
@@ -34,6 +34,7 @@ const LandingPage: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -53,6 +54,14 @@ const LandingPage: React.FC = () => {
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + 3) % 3);
+  };
+
+  const navigateToLogin = () => {
+    router.push('/auth/login');
+  };
+
+  const navigateToRegister = () => {
+    router.push('/auth/register');
   };
 
   const stats = [
@@ -110,60 +119,66 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className={`font-sans antialiased transition-colors duration-300 ${theme === "dark"
-        ? 'text-gray-100 bg-dark-900'
-        : 'text-gray-800 bg-white'
+      ? 'text-gray-100 bg-dark-900'
+      : 'text-gray-800 bg-white'
       } overflow-x-hidden`} dir="rtl">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg" style={{background: '#49BBBD'}}>
+      <header className="fixed top-0 left-0 right-0 z-50 shadow-lg" style={{ background: '#49BBBD' }}>
         {/* Curved bottom edge with enhanced styling */}
         <div className="relative">
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-white dark:bg-dark-900 rounded-t-full shadow-inner"></div>
           <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/20 to-transparent rounded-t-full"></div>
         </div>
-        
+
         <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center relative z-10">
           {/* Logo with enhanced styling */}
           <div className="flex items-center space-x-3">
-             <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-all duration-300">
+            <div className="w-12 h-12 bg-gradient-to-br from-white to-gray-100 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-all duration-300">
               <span className="text-teal-600 text-2xl font-bold">T</span>
             </div>
-             <span className="text-3xl font-bold text-white drop-shadow-lg">
+            <span className="text-3xl font-bold text-white drop-shadow-lg">
               TOTC
             </span>
           </div>
 
           {/* Desktop Navigation with enhanced styling */}
           <div className="hidden lg:flex items-center space-x-12">
-                         <a href="#home" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
+            <a href="#home" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
               <span>الرئيسية</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
             </a>
-                         <a href="#courses" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
+            <a href="#courses" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
               <span>الدورات</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
             </a>
-                         <a href="#features" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
+            <a href="#features" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
               <span>الميزات</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
             </a>
-                         <a href="#about" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
+            <a href="#about" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
               <span>عنّا</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
             </a>
-                         <a href="#contact" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
+            <a href="#contact" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
               <span>اتصل بنا</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
             </a>
           </div>
 
           {/* Auth Buttons & Theme Toggle with enhanced styling */}
-          <div className="hidden lg:flex items-center space-x-6" style={{flexDirection: 'row-reverse'}}>
-                         <Link href="/auth/login" className="px-6 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
+          <div className="hidden lg:flex items-center space-x-6" style={{ flexDirection: 'row-reverse' }}>
+            <button
+              onClick={navigateToLogin}
+              className="px-6 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
               تسجيل الدخول
-            </Link>
-                         <Link href="/auth/register" className="px-6 py-3 rounded-full text-teal-600 bg-white hover:bg-gray-50 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105">
+            </button>
+            <button
+              onClick={navigateToRegister}
+              className="px-6 py-3 rounded-full text-teal-600 bg-white hover:bg-gray-50 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
               اشتراك
-             </Link>
+            </button>
             <button
               onClick={toggleTheme}
               className="p-3 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -188,30 +203,36 @@ const LandingPage: React.FC = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-teal-400 shadow-xl" style={{background: '#49BBBD'}}>
+          <div className="lg:hidden border-t border-teal-400 shadow-xl" style={{ background: '#49BBBD' }}>
             <div className="px-4 pt-2 pb-4 space-y-2">
-                             <a href="#home" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
+              <a href="#home" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الرئيسية
               </a>
-                             <a href="#courses" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
+              <a href="#courses" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الدورات
               </a>
-                             <a href="#features" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
+              <a href="#features" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الميزات
               </a>
-                             <a href="#about" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
+              <a href="#about" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 عنّا
               </a>
-                             <a href="#contact" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
+              <a href="#contact" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 اتصل بنا
               </a>
               <div className="pt-4 space-y-2">
-                                 <Link href="/auth/login" className="w-full px-6 py-2.5 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium">
+                <button
+                  onClick={navigateToLogin}
+                  className="w-full px-6 py-2.5 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium"
+                >
                   تسجيل الدخول
-                </Link>
-                                 <Link href="/auth/register" className="w-full px-6 py-2.5 rounded-full text-teal-600 bg-white hover:bg-gray-100 transition-all duration-300 font-medium">
+                </button>
+                <button
+                  onClick={navigateToRegister}
+                  className="w-full px-6 py-2.5 rounded-full text-teal-600 bg-white hover:bg-gray-100 transition-all duration-300 font-medium"
+                >
                   اشتراك
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -220,12 +241,12 @@ const LandingPage: React.FC = () => {
 
       {/* Main Content */}
       <main className="pt-20">
-                 {/* Hero Section with enhanced design */}
-         <section
-           id="home"
-           className="relative py-20 lg:py-32 overflow-hidden"
-           style={{background: '#49BBBD'}}
-         >
+        {/* Hero Section with enhanced design */}
+        <section
+          id="home"
+          className="relative py-20 lg:py-32 overflow-hidden"
+          style={{ background: '#49BBBD' }}
+        >
           {/* Background decorative elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
@@ -237,21 +258,24 @@ const LandingPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row items-center justify-between space-y-12 lg:space-y-0 lg:space-x-12">
               {/* Text Content with enhanced styling */}
               <div className="lg:w-1/2 text-center lg:text-right">
-                                                  <h1 className="text-5xl lg:text-7xl xl:text-8xl font-extrabold leading-tight mb-8 text-white drop-shadow-2xl">
-                   <span style={{color: '#252641'}}>
+                <h1 className="text-5xl lg:text-7xl xl:text-8xl font-extrabold leading-tight mb-8 text-white drop-shadow-2xl">
+                  <span style={{ color: '#252641' }}>
                     الدراسة عبر الإنترنت
                   </span>
                   <br />
-                   <span className="text-white">الآن أسهل بكثير</span>
+                  <span className="text-white">الآن أسهل بكثير</span>
                 </h1>
-                                 <p className="text-xl lg:text-2xl mb-10 leading-relaxed text-teal-100 drop-shadow-lg">
+                <p className="text-xl lg:text-2xl mb-10 leading-relaxed text-teal-100 drop-shadow-lg">
                   TOTC هي منصة شيقة ستعلمك بطريقة تفاعلية ومتقدمة
                 </p>
-                                 <div className="flex flex-col sm:flex-row space-y-8 sm:space-y-0 sm:space-x-12 items-center justify-center lg:justify-evenly">
-                                     <Link href="/auth/register" className="px-8 py-4 rounded-full text-teal-600 bg-white hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl font-bold text-lg border-2 border-white">
+                <div className="flex flex-col sm:flex-row space-y-8 sm:space-y-0 sm:space-x-12 items-center justify-center lg:justify-evenly">
+                  <button
+                    onClick={navigateToRegister}
+                    className="px-8 py-4 rounded-full text-teal-600 bg-white hover:bg-gray-50 transition-all duration-300 shadow-2xl hover:shadow-3xl font-bold text-lg border-2 border-white"
+                  >
                     انضم مجاناً
-                  </Link>
-                                     <button onClick={openVideoDialog} className="px-8 py-4 rounded-full border-3 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 flex items-center space-x-3 font-bold text-lg shadow-2xl hover:shadow-3xl">
+                  </button>
+                  <button onClick={openVideoDialog} className="px-8 py-4 rounded-full border-3 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 flex items-center space-x-3 font-bold text-lg shadow-2xl hover:shadow-3xl">
                     <PlayCircle size={24} />
                     <span>شاهد كيف يعمل</span>
                   </button>
@@ -259,7 +283,7 @@ const LandingPage: React.FC = () => {
               </div>
 
               {/* Video Section with enhanced styling */}
-                             <div className="relative w-full lg:w-1/2 flex justify-center lg:justify-evenly">
+              <div className="relative w-full lg:w-1/2 flex justify-center lg:justify-evenly">
                 <div className="relative">
                   {/* Video with enhanced styling */}
                   <video
@@ -270,41 +294,41 @@ const LandingPage: React.FC = () => {
                     loop
                     playsInline
                   />
-                  
-                                     {/* Enhanced Floating Cards */}
-                   <div className="absolute -top-4 -left-4 lg:-top-8 lg:-left-8 p-3 lg:p-6 rounded-xl lg:rounded-3xl shadow-lg lg:shadow-2xl bg-white/30 backdrop-blur-xl border border-white/50 transform -rotate-2 lg:-rotate-3 hover:rotate-0 transition-all duration-500 animate-bounce hover:scale-105">
-                     <div className="flex items-center space-x-2 lg:space-x-4">
-                       <div className="w-6 h-6 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                         <Users size={12} className="lg:w-6 lg:h-6 text-white" />
+
+                  {/* Enhanced Floating Cards */}
+                  <div className="absolute -top-4 -left-4 lg:-top-8 lg:-left-8 p-3 lg:p-6 rounded-xl lg:rounded-3xl shadow-lg lg:shadow-2xl bg-white/30 backdrop-blur-xl border border-white/50 transform -rotate-2 lg:-rotate-3 hover:rotate-0 transition-all duration-500 animate-bounce hover:scale-105">
+                    <div className="flex items-center space-x-2 lg:space-x-4">
+                      <div className="w-6 h-6 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                        <Users size={12} className="lg:w-6 lg:h-6 text-white" />
                       </div>
                       <div>
-                         <h3 className="text-xs lg:text-base font-bold text-white drop-shadow-lg">250K طالب مساعد</h3>
+                        <h3 className="text-xs lg:text-base font-bold text-white drop-shadow-lg">250K طالب مساعد</h3>
                       </div>
                     </div>
                   </div>
-                  
-                   <div className="absolute top-4 -right-4 lg:top-12 lg:-right-12 p-3 lg:p-6 rounded-xl lg:rounded-3xl shadow-lg lg:shadow-2xl bg-white/30 backdrop-blur-xl border border-white/50 transform rotate-2 lg:rotate-3 hover:rotate-0 transition-all duration-500 animate-bounce hover:scale-105" style={{animationDelay: '0.5s'}}>
-                     <div className="flex items-center space-x-2 lg:space-x-4">
-                       <div className="w-6 h-6 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                         <MessageCircle size={12} className="lg:w-6 lg:h-6 text-white" />
+
+                  <div className="absolute top-4 -right-4 lg:top-12 lg:-right-12 p-3 lg:p-6 rounded-xl lg:rounded-3xl shadow-lg lg:shadow-2xl bg-white/30 backdrop-blur-xl border border-white/50 transform rotate-2 lg:rotate-3 hover:rotate-0 transition-all duration-500 animate-bounce hover:scale-105" style={{ animationDelay: '0.5s' }}>
+                    <div className="flex items-center space-x-2 lg:space-x-4">
+                      <div className="w-6 h-6 lg:w-12 lg:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                        <MessageCircle size={12} className="lg:w-6 lg:h-6 text-white" />
                       </div>
                       <div>
-                         <h3 className="text-xs lg:text-base font-bold text-white drop-shadow-lg">تهانينا</h3>
-                         <p className="text-xs lg:text-sm text-white/90 drop-shadow-lg">تم إكمال تسجيلك</p>
+                        <h3 className="text-xs lg:text-base font-bold text-white drop-shadow-lg">تهانينا</h3>
+                        <p className="text-xs lg:text-sm text-white/90 drop-shadow-lg">تم إكمال تسجيلك</p>
                       </div>
                     </div>
                   </div>
-                  
-                   <div className="absolute -bottom-4 -left-4 lg:-bottom-4 lg:-left-12 p-3 lg:p-6 rounded-xl lg:rounded-3xl shadow-lg lg:shadow-2xl bg-white/30 backdrop-blur-xl border border-white/50 transform -rotate-2 lg:-rotate-3 hover:rotate-0 transition-all duration-500 animate-bounce hover:scale-105" style={{animationDelay: '1s'}}>
-                     <div className="flex items-center space-x-2 lg:space-x-4">
-                       <div className="w-6 h-6 lg:w-12 lg:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                         <Users size={12} className="lg:w-6 lg:h-6 text-white" />
+
+                  <div className="absolute -bottom-4 -left-4 lg:-bottom-4 lg:-left-12 p-3 lg:p-6 rounded-xl lg:rounded-3xl shadow-lg lg:shadow-2xl bg-white/30 backdrop-blur-xl border border-white/50 transform -rotate-2 lg:-rotate-3 hover:rotate-0 transition-all duration-500 animate-bounce hover:scale-105" style={{ animationDelay: '1s' }}>
+                    <div className="flex items-center space-x-2 lg:space-x-4">
+                      <div className="w-6 h-6 lg:w-12 lg:h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                        <Users size={12} className="lg:w-6 lg:h-6 text-white" />
                       </div>
                       <div>
-                         <h3 className="text-xs lg:text-base font-bold text-white drop-shadow-lg">فصل تجربة المستخدم</h3>
-                         <p className="text-xs lg:text-sm text-white/90 drop-shadow-lg">اليوم في 12:00 مساءً</p>
-                         <button className="mt-2 lg:mt-3 text-xs lg:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 px-3 lg:px-4 py-1 lg:py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                           انضم الآن
+                        <h3 className="text-xs lg:text-base font-bold text-white drop-shadow-lg">فصل تجربة المستخدم</h3>
+                        <p className="text-xs lg:text-sm text-white/90 drop-shadow-lg">اليوم في 12:00 مساءً</p>
+                        <button className="mt-2 lg:mt-3 text-xs lg:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 px-3 lg:px-4 py-1 lg:py-2 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                          انضم الآن
                         </button>
                       </div>
                     </div>
@@ -326,11 +350,11 @@ const LandingPage: React.FC = () => {
                 نحن نفخر بإنجازاتنا وأثرنا في مجال التعليم الرقمي
               </p>
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center group">
-                  <div className="text-6xl lg:text-7xl font-normal mb-2" style={{background: 'linear-gradient(135deg, #136CB5 0%, #49BBBD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text'}}>
+                  <div className="text-6xl lg:text-7xl font-normal mb-2" style={{ background: 'linear-gradient(135deg, #136CB5 0%, #49BBBD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
                     {stat.number}
                   </div>
                   <div className={`text-base lg:text-lg font-medium transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-600'}`}>{stat.label}</div>
@@ -345,27 +369,27 @@ const LandingPage: React.FC = () => {
           }`}>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl font-bold mb-6" style={{color: '#00CBB8'}}>
+              <h2 className="text-3xl lg:text-4xl font-bold mb-6" style={{ color: '#00CBB8' }}>
                 برنامج سحابي شامل
               </h2>
-              <p className={`text-lg max-w-3xl mx-auto pb-10 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {color: '#2F327D'}}>
+              <p className={`text-lg max-w-3xl mx-auto pb-10 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { color: '#2F327D' }}>
                 TOTC هو برنامج سحابي شامل يجمع جميع الأدوات اللازمة لتشغيل مدرسة أو مكتب ناجح
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {features.map((feature, index) => (
                 <div key={index} className="group">
                   <div className={`rounded-3xl shadow-lg p-10 h-96 transform group-hover:scale-105 transition-all duration-300 border ${theme === "dark"
-                      ? 'bg-gray-800 border-gray-700'
-                      : 'bg-white border-gray-200'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-200'
                     } relative`}>
-                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center absolute -top-10 left-1/2 transform -translate-x-1/2 group-hover:scale-110 transition-transform duration-300`} 
-                         style={{
-                           background: index === 0 ? '#00CBB8' : 
-                                      index === 1 ? '#5B72EE' : 
-                                      '#29B9E7'
-                         }}>
+                    <div className={`w-20 h-20 rounded-2xl flex items-center justify-center absolute -top-10 left-1/2 transform -translate-x-1/2 group-hover:scale-110 transition-transform duration-300`}
+                      style={{
+                        background: index === 0 ? '#00CBB8' :
+                          index === 1 ? '#5B72EE' :
+                            '#29B9E7'
+                      }}>
                       <feature.icon size={40} className="text-white" />
                     </div>
                     <div className="pt-16 text-center">
@@ -386,14 +410,14 @@ const LandingPage: React.FC = () => {
           }`}>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className={`text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {color: '#2F327D'}}>
-                ما هو <span style={{color: '#00CBB8'}}>TOTC</span>؟
+              <h2 className={`text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { color: '#2F327D' }}>
+                ما هو <span style={{ color: '#00CBB8' }}>TOTC</span>؟
               </h2>
-              <p className={`text-lg max-w-4xl mx-auto leading-relaxed transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : ''}`} style={theme === "dark" ? {} : {color: '#2F327D'}}>
+              <p className={`text-lg max-w-4xl mx-auto leading-relaxed transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : ''}`} style={theme === "dark" ? {} : { color: '#2F327D' }}>
                 TOTC هو منصة تسمح للمعلمين بإنشاء فصول دراسية عبر الإنترنت حيث يمكنهم تخزين المواد التعليمية عبر الإنترنت؛ إدارة الواجبات والاختبارات والامتحانات؛ مراقبة المواعيد النهائية؛ تصحيح النتائج وتقديم التغذية الراجعة للطلاب كل ذلك في مكان واحد.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* FOR INSTRUCTORS Card */}
               <div className="relative rounded-3xl overflow-hidden shadow-2xl">
@@ -442,7 +466,7 @@ const LandingPage: React.FC = () => {
               {/* Text Content */}
               <div className="text-right">
                 <h3 className={`text-3xl lg:text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : 'text-gray-900'}`}>
-                  كل ما يمكنك فعله في الفصل الدراسي التقليدي، يمكنك فعله مع <span style={{color: '#00CBB8'}}>TOTC</span>
+                  كل ما يمكنك فعله في الفصل الدراسي التقليدي، يمكنك فعله مع <span style={{ color: '#00CBB8' }}>TOTC</span>
                 </h3>
                 <p className={`text-lg leading-relaxed mb-8 transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-600'}`}>
                   برنامج إدارة المدرسة من TOTC يساعد المدارس التقليدية والعبر الإنترنت في إدارة الجدولة والحضور والمدفوعات والفصول الدراسية الافتراضية كل ذلك في نظام سحابي واحد آمن.
@@ -463,7 +487,7 @@ const LandingPage: React.FC = () => {
                   playsInline
                 />
 
-                
+
                 {/* Decorative Shapes */}
                 <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-green-200 rounded-3xl opacity-60 -z-10"></div>
                 <div className="absolute -top-4 -right-4 w-20 h-20 bg-blue-200 rounded-2xl opacity-60 -z-10"></div>
@@ -477,13 +501,13 @@ const LandingPage: React.FC = () => {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-20">
               <h2 className={`text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`}>
-                <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#252641'}}>ميزاتنا</span>
+                <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#252641' }}>ميزاتنا</span>
               </h2>
               <p className={`text-xl max-w-3xl mx-auto transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-600'}`}>
                 هذه الميزة الاستثنائية جداً، يمكن أن تجعل أنشطة التعلم أكثر كفاءة
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               {/* Left Column - Image */}
               <div className="relative flex justify-center">
@@ -494,7 +518,7 @@ const LandingPage: React.FC = () => {
                     alt="Our Features Interface"
                     className="w-full h-auto"
                   />
-                  
+
                   {/* Decorative Shapes */}
                   <div className="absolute -top-8 -left-8 w-32 h-32 bg-teal-400 rounded-full opacity-80 -z-10"></div>
                   <div className="absolute -top-4 -right-4 w-20 h-20 bg-blue-300 rounded-full opacity-80 -z-10"></div>
@@ -505,11 +529,11 @@ const LandingPage: React.FC = () => {
               {/* Right Column - Text Content */}
               <div className="text-right">
                 <h3 className={`text-3xl lg:text-4xl font-bold mb-8 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#252641'}}>واجهة مستخدم مصممة</span>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#252641' }}>واجهة مستخدم مصممة</span>
                   <br />
-                  <span style={{color: '#00CBB8'}}>للفصول الدراسية</span>
+                  <span style={{ color: '#00CBB8' }}>للفصول الدراسية</span>
                 </h3>
-                
+
                 <div className="space-y-8">
                   {/* Feature 1 */}
                   <div className="flex items-start space-x-4 space-x-reverse">
@@ -593,10 +617,10 @@ const LandingPage: React.FC = () => {
 
               {/* Right Text - Tools */}
               <div className="text-right">
-                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={{color: '#00CBB8'}}>أدوات للمعلمين</span>
+                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={{ color: '#00CBB8' }}>أدوات للمعلمين</span>
                   <br />
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}}>والمتعلمين</span>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }}>والمتعلمين</span>
                 </h2>
                 <p className={`text-lg leading-relaxed transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   لدى Class مجموعة ديناميكية من أدوات التدريس المصممة للنشر والاستخدام أثناء الفصل. يمكن للمعلمين توزيع الواجبات في الوقت الفعلي للطلاب لإكمالها وتقديمها.
@@ -608,10 +632,10 @@ const LandingPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Left Text - Quizzes */}
               <div className="text-right">
-                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}}>التقييمات،</span>
+                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }}>التقييمات،</span>
                   <br />
-                  <span style={{color: '#00CBB8'}}>الاختبارات القصيرة، الاختبارات</span>
+                  <span style={{ color: '#00CBB8' }}>الاختبارات القصيرة، الاختبارات</span>
                 </h2>
                 <p className={`text-lg leading-relaxed transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   أطلق المهام والاختبارات والاختبارات القصيرة بسهولة. يتم إدخال نتائج الطلاب تلقائياً في دفتر الدرجات عبر الإنترنت.
@@ -664,10 +688,10 @@ const LandingPage: React.FC = () => {
 
               {/* Right Text - GradeBook */}
               <div className="text-right">
-                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}}>أدوات إدارة الفصول الدراسية</span>
+                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }}>أدوات إدارة الفصول الدراسية</span>
                   <br />
-                  <span style={{color: '#00CBB8'}}>للمعلمين</span>
+                  <span style={{ color: '#00CBB8' }}>للمعلمين</span>
                 </h2>
                 <p className={`text-lg leading-relaxed transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   يوفر "الفصل" أدوات لمساعدتك في تشغيل وإدارة الفصل مثل قائمة الطلاب والحضور والمزيد. مع دفتر الدرجات، يمكن للمعلمين مراجعة وتقييم الاختبارات والاختبارات القصيرة في الوقت الفعلي.
@@ -679,10 +703,10 @@ const LandingPage: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Left Text - Private Discussions */}
               <div className="text-right">
-                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}}>المناقشات</span>
+                <h2 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }}>المناقشات</span>
                   <br />
-                  <span style={{color: '#00CBB8'}}>واحد لواحد</span>
+                  <span style={{ color: '#00CBB8' }}>واحد لواحد</span>
                 </h2>
                 <p className={`text-lg leading-relaxed transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   يمكن للمعلمين والمساعدين التحدث مع الطلاب بشكل خاص دون مغادرة بيئة Zoom.
@@ -725,7 +749,7 @@ const LandingPage: React.FC = () => {
                     alt="Testimonial Interface"
                     className="w-96 h-auto"
                   />
-                  
+
                   {/* Testimonial Card Overlay */}
                   <div className="absolute bottom-[-100px] right-8 bg-white rounded-2xl p-6 shadow-lg max-w-xs">
                     <p className="text-sm text-gray-700 mb-4 italic">
@@ -753,10 +777,10 @@ const LandingPage: React.FC = () => {
                   <ArrowLeft className='align-center'></ArrowLeft>
                   <h2 className="text-2xl font-semibold text-primary-500">آراء العملاء</h2>
                 </div>
-                <h3 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}} >ماذا</span>
+                <h3 className={`text-4xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }} >ماذا</span>
                   <span> </span>
-                  <span style={{color: '#00CBB8'}}>يقولون؟</span>
+                  <span style={{ color: '#00CBB8' }}>يقولون؟</span>
                 </h3>
                 <p className={`text-lg leading-relaxed mb-4 transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   حصل TOTC على أكثر من 100 ألف تقييم إيجابي من مستخدمينا حول العالم.
@@ -809,10 +833,10 @@ const LandingPage: React.FC = () => {
                 <span className="inline-block px-3 py-1 bg-primary-500 text-white text-xs font-semibold rounded-full mb-4">
                   أخبار
                 </span>
-                <h3 className={`text-2xl font-bold mb-4 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}}>Class يضيف 30 مليون دولار</span>
+                <h3 className={`text-2xl font-bold mb-4 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }}>Class يضيف 30 مليون دولار</span>
                   <br />
-                  <span style={{color: '#00CBB8'}}>إلى ميزانيته العمومية</span>
+                  <span style={{ color: '#00CBB8' }}>إلى ميزانيته العمومية</span>
                 </h3>
                 <p className={`text-lg leading-relaxed mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   لحل تعليمي متوافق مع Zoom
@@ -830,10 +854,10 @@ const LandingPage: React.FC = () => {
                 <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-full mb-4">
                   بيان صحفي
                 </span>
-                <h3 className={`text-2xl font-bold mb-4 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : {fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%'}}>
-                  <span style={theme === "dark" ? {color: '#ffffff'} : {color: '#2E327D'}}>TOTC يغلق جولة تمويل</span>
+                <h3 className={`text-2xl font-bold mb-4 transition-colors duration-300 ${theme === "dark" ? 'text-white' : ''}`} style={theme === "dark" ? {} : { fontFamily: 'Poppins, sans-serif', fontWeight: 600, lineHeight: '160%' }}>
+                  <span style={theme === "dark" ? { color: '#ffffff' } : { color: '#2E327D' }}>TOTC يغلق جولة تمويل</span>
                   <br />
-                  <span style={{color: '#00CBB8'}}>بقيمة 30 مليون دولار</span>
+                  <span style={{ color: '#00CBB8' }}>بقيمة 30 مليون دولار</span>
                 </h3>
                 <p className={`text-lg leading-relaxed mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-700'}`}>
                   لتلبية الطلب المتزايد على منصات التعلم الرقمي
@@ -881,11 +905,10 @@ const LandingPage: React.FC = () => {
                   <input
                     type="email"
                     placeholder="بريدك الإلكتروني"
-                    className={`flex-1 px-4 py-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:border-primary-500 ${
-                      theme === "dark" 
-                        ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
+                    className={`flex-1 px-4 py-3 rounded-lg border transition-colors duration-300 focus:outline-none focus:border-primary-500 ${theme === "dark"
+                        ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
                         : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                    }`}
+                      }`}
                   />
                   <button className="px-6 py-3 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors duration-300">
                     اشتراك
@@ -941,7 +964,7 @@ const LandingPage: React.FC = () => {
               >
                 <X size={24} />
               </button>
-              
+
               {/* Video */}
               <video
                 src="/assets/video/5183278-hd_1920_1080_30fps.mp4"
