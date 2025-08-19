@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 import { 
@@ -12,99 +15,127 @@ import {
   ArrowTrendingUpIcon,
   ShieldCheckIcon 
 } from "@heroicons/react/24/outline";
+import { getAllUsers, getDashboardStats, getPublishedCourses } from '../../../lib/course-utils'
+import { getCurrentUser } from '../../../lib/auth-utils'
+import { supabase } from '../../../lib/supabase'
 
-const adminData = {
-  name: "مدير النظام",
-  avatar: undefined,
-  stats: {
-    totalUsers: 1547,
-    totalCourses: 156,
-    totalRevenue: 45780,
-    activeIssues: 3,
-  },
-  userGrowth: {
-    thisMonth: 127,
-    lastMonth: 98,
-    growth: 29.6
-  },
-  recentUsers: [
-    {
-      id: 1,
-      name: "أحمد حسن",
-      email: "ahmed@example.com",
-      role: "طالب",
-      joinedAt: "2024-08-15",
-      status: "نشط",
+export default function AdminDashboard() {
+  const [adminData, setAdminData] = useState({
+    name: "مدير النظام",
+    avatar: undefined,
+    stats: {
+      totalUsers: 0,
+      totalCourses: 0,
+      totalRevenue: 0,
+      activeIssues: 0,
     },
-    {
-      id: 2,
-      name: "د. سارة أحمد",
-      email: "sarah@example.com",
-      role: "معلم",
-      joinedAt: "2024-08-14",
-      status: "نشط",
+    userGrowth: {
+      thisMonth: 0,
+      lastMonth: 0,
+      growth: 0
     },
-    {
-      id: 3,
-      name: "عمر محمود",
-      email: "omar@example.com",
-      role: "طالب",
-      joinedAt: "2024-08-14",
-      status: "معلق",
-    },
-  ],
-  topCourses: [
-    {
-      id: 1,
-      title: "الرياضيات المتقدمة",
-      instructor: "د. سارة أحمد",
-      students: 247,
-      revenue: 4850,
-      rating: 4.8,
-    },
-    {
-      id: 2,
-      title: "أساسيات الفيزياء",
-      instructor: "أ. محمد علي",
-      students: 189,
-      revenue: 3780,
-      rating: 4.6,
-    },
-    {
-      id: 3,
-      title: "أساسيات الكيمياء",
-      instructor: "د. فاطمة نور",
-      students: 156,
-      revenue: 3120,
-      rating: 4.9,
-    },
-  ],
-  systemAlerts: [
-    {
-      id: 1,
-      type: "warning",
-      title: "حمولة خادم عالية",
-      description: "استخدام المعالج أعلى من 85% لآخر 30 دقيقة",
-      time: "منذ 15 دقيقة",
-    },
-    {
-      id: 2,
-      type: "info",
-      title: "صيانة مجدولة",
-      description: "نسخ احتياطي للقاعدة سيبدأ في 2:00 ص",
-      time: "منذ ساعتين",
-    },
-    {
-      id: 3,
-      type: "error",
-      title: "خطأ في بوابة الدفع",
+    recentUsers: [] as any[],
+    topCourses: [] as any[],
+    systemAlerts: [] as any[]
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true)
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { user: userProfile } = await getCurrentUser(user.id)
+        
+        // Get dashboard stats
+        const { data: stats } = await getDashboardStats('admin')
+        
+        // Get all users
+        const { data: users } = await getAllUsers()
+        
+        // Get published courses
+        const { data: courses } = await getPublishedCourses()
+        
+        // Transform recent users
+        const recentUsers = users?.slice(0, 5).map(user => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role === 'student' ? 'طالب' : user.role === 'teacher' ? 'معلم' : 'مدير',
+          joinedAt: new Date(user.created_at).toLocaleDateString('ar-SA'),
+          status: user.is_active ? 'نشط' : 'معلق',
+        })) || []
+
+        // Transform top courses
+        const topCourses = courses?.slice(0, 3).map(course => ({
+          id: course.id,
+          title: course.title,
+          instructor: course.teacher?.name || 'غير محدد',
+          students: course.enrollment_count || 0,
+          revenue: course.is_free ? 0 : (course.price || 0) * (course.enrollment_count || 0),
+          rating: course.rating || 0,
+        })) || []
+
+        setAdminData({
+          name: userProfile?.name || "مدير النظام",
+          avatar: userProfile?.avatar_url,
+          stats: {
+            totalUsers: (stats as any)?.totalUsers || 0,
+            totalCourses: (stats as any)?.totalCourses || 0,
+            totalRevenue: 0, // Will be calculated later
+            activeIssues: 0, // Will be implemented later
+          },
+          userGrowth: {
+            thisMonth: 0, // Will be calculated later
+            lastMonth: 0,
+            growth: 0
+          },
+          recentUsers,
+          topCourses,
+          systemAlerts: [] // Will be implemented later
+        })
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
       description: "بعض المدفوعات تفشل في المعالجة",
       time: "منذ 4 ساعات",
     },
   ]
 };
 
-export default function AdminDashboard() {
+  }
+
+  if (loading) {
+    return (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <DashboardLayout userRole="admin" userName={adminData.name} userAvatar={adminData.avatar}>
+          <div className="py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </DashboardLayout>
+      </ProtectedRoute>
+    )
+  }
+
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <DashboardLayout userRole="admin" userName={adminData.name} userAvatar={adminData.avatar}>

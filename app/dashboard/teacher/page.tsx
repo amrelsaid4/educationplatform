@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import { 
   BookOpenIcon, 
@@ -8,91 +11,94 @@ import {
   CurrencyDollarIcon,
   ArrowTrendingUpIcon 
 } from "@heroicons/react/24/outline";
-
-const teacherData = {
-  name: "د. سارة أحمد",
-  avatar: undefined,
-  stats: {
-    totalCourses: 8,
-    totalStudents: 247,
-    pendingAssignments: 15,
-    monthlyRevenue: 3250,
-  },
-  courses: [
-    {
-      id: 1,
-      title: "الرياضيات المتقدمة",
-      students: 45,
-      progress: 75,
-      status: "منشور",
-      revenue: 1250,
-    },
-    {
-      id: 2,
-      title: "التفاضل والتكامل للمبتدئين",
-      students: 78,
-      progress: 100,
-      status: "منشور",
-      revenue: 2000,
-    },
-    {
-      id: 3,
-      title: "الجبر الخطي",
-      students: 32,
-      progress: 60,
-      status: "مسودة",
-      revenue: 0,
-    },
-  ],
-  recentActivity: [
-    {
-      id: 1,
-      type: "assignment",
-      title: "مهمة جديدة من أحمد حسن",
-      course: "الرياضيات المتقدمة",
-      time: "منذ ساعتين",
-    },
-    {
-      id: 2,
-      type: "enrollment",
-      title: "5 طلاب جدد تم تسجيلهم",
-      course: "التفاضل والتكامل للمبتدئين",
-      time: "منذ 4 ساعات",
-    },
-    {
-      id: 3,
-      type: "completion",
-      title: "15 طالب أكملوا الدرس 3",
-      course: "الرياضيات المتقدمة",
-      time: "منذ 6 ساعات",
-    },
-  ],
-  pendingReviews: [
-    {
-      id: 1,
-      student: "أحمد حسن",
-      assignment: "مجموعة مسائل التفاضل والتكامل 3",
-      course: "الرياضيات المتقدمة",
-      submittedAt: "2024-08-15",
-    },
-    {
-      id: 2,
-      student: "فاطمة علي",
-      assignment: "اختبار المعادلات الخطية",
-      course: "الرياضيات المتقدمة",
-      submittedAt: "2024-08-15",
-    },
-    {
-      id: 3,
-      student: "عمر محمود",
-      assignment: "تمارين التكامل",
-      course: "التفاضل والتكامل للمبتدئين",
-      submittedAt: "2024-08-14",
-    },
-  ]
-};
+import { getCoursesByTeacher, getDashboardStats } from '../../../lib/course-utils'
+import { getCurrentUser } from '../../../lib/auth-utils'
+import { supabase } from '../../../lib/supabase'
 
 export default function TeacherDashboard() {
+  const [teacherData, setTeacherData] = useState({
+    name: "",
+  avatar: undefined,
+  stats: {
+      totalCourses: 0,
+      totalStudents: 0,
+      pendingAssignments: 0,
+      monthlyRevenue: 0,
+    },
+    courses: [] as any[],
+    recentActivity: [] as any[],
+    pendingReviews: [] as any[]
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true)
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { user: userProfile } = await getCurrentUser(user.id)
+        
+        // Get dashboard stats
+        const { data: stats } = await getDashboardStats('teacher', user.id)
+        
+        // Get teacher courses
+        const { data: courses } = await getCoursesByTeacher(user.id)
+        
+        // Transform courses data
+        const transformedCourses = courses?.slice(0, 3).map(course => ({
+          id: course.id,
+          title: course.title,
+          students: course.enrollment_count || 0,
+          progress: 75, // Placeholder
+          status: course.status === 'published' ? 'منشور' : course.status === 'draft' ? 'مسودة' : 'مؤرشف',
+          revenue: course.is_free ? 0 : (course.price || 0) * (course.enrollment_count || 0),
+        })) || []
+
+        setTeacherData({
+          name: userProfile?.name || '',
+          avatar: userProfile?.avatar_url,
+          stats: {
+            totalCourses: (stats as any)?.totalCourses || 0,
+            totalStudents: (stats as any)?.totalStudents || 0,
+            pendingAssignments: 0, // Will be implemented later
+            monthlyRevenue: 0, // Will be implemented later
+          },
+          courses: transformedCourses,
+          recentActivity: [], // Will be implemented later
+          pendingReviews: [] // Will be implemented later
+        })
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout userRole="teacher" userName={teacherData.name} userAvatar={teacherData.avatar}>
+        <div className="py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
   return (
     <DashboardLayout userRole="teacher" userName={teacherData.name} userAvatar={teacherData.avatar}>
       <div className="py-6">

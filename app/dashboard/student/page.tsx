@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import { 
   BookOpenIcon, 
@@ -6,73 +9,97 @@ import {
   ClockIcon,
   ChartBarIcon 
 } from "@heroicons/react/24/outline";
-
-const studentData = {
-  name: "أحمد حسن",
-  avatar: undefined,
-  stats: {
-    enrolledCourses: 4,
-    completedAssignments: 12,
-    pendingAssignments: 3,
-    totalHoursLearned: 47,
-  },
-  recentCourses: [
-    {
-      id: 1,
-      title: "الرياضيات المتقدمة",
-      instructor: "د. سارة أحمد",
-      progress: 75,
-      nextLesson: "تقنيات التكامل",
-      dueDate: "2024-08-15",
-    },
-    {
-      id: 2,
-      title: "أساسيات الفيزياء",
-      instructor: "أ. محمد علي",
-      progress: 45,
-      nextLesson: "قوانين نيوتن",
-      dueDate: "2024-08-20",
-    },
-    {
-      id: 3,
-      title: "أساسيات الكيمياء",
-      instructor: "د. فاطمة نور",
-      progress: 90,
-      nextLesson: "الكيمياء العضوية",
-      dueDate: "2024-08-18",
-    },
-  ],
-  upcomingAssignments: [
-    {
-      id: 1,
-      title: "مجموعة مسائل التفاضل والتكامل 3",
-      course: "الرياضيات المتقدمة",
-      dueDate: "16-08-2024",
-      status: "pending",
-    },
-    {
-      id: 2,
-      title: "تقرير مختبر الفيزياء",
-      course: "أساسيات الفيزياء",
-      dueDate: "18-08-2024",
-      status: "pending",
-    },
-    {
-      id: 3,
-      title: "اختبار الكيمياء",
-      course: "أساسيات الكيمياء",
-      dueDate: "20-08-2024",
-      status: "pending",
-    },
-  ],
-  achievements: [
-    { name: "متعلم سريع", description: "أكمل 5 دروس في يوم واحد", icon: "⚡" },
-    { name: "درجة كاملة", description: "حصل على 100% في اختبار الرياضيات", icon: "🎯" },
-    { name: "المثابرة", description: "سلسلة تعلم لمدة 7 أيام", icon: "🔥" },
-  ]
-};
+import { getStudentEnrollments, getDashboardStats } from '../../../lib/course-utils'
+import { getCurrentUser } from '../../../lib/auth-utils'
+import { supabase } from '../../../lib/supabase'
+import type { CourseEnrollment } from '../../../lib/course-utils'
 
 export default function StudentDashboard() {
+  const [studentData, setStudentData] = useState({
+    name: "",
+    avatar: undefined,
+    stats: {
+      enrolledCourses: 0,
+      completedLessons: 0,
+      totalHoursLearned: 0,
+    },
+    recentCourses: [] as any[],
+    upcomingAssignments: [] as any[],
+    achievements: [
+      { name: "متعلم سريع", description: "أكمل 5 دروس في يوم واحد", icon: "⚡" },
+      { name: "درجة كاملة", description: "حصل على 100% في اختبار الرياضيات", icon: "🎯" },
+      { name: "المثابرة", description: "سلسلة تعلم لمدة 7 أيام", icon: "🔥" },
+    ]
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true)
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { user: userProfile } = await getCurrentUser(user.id)
+        
+        // Get dashboard stats
+        const { data: stats } = await getDashboardStats('student', user.id)
+        
+        // Get enrolled courses
+        const { data: enrollments } = await getStudentEnrollments(user.id)
+        
+        // Transform data for display
+        const recentCourses = enrollments?.slice(0, 3).map(enrollment => ({
+          id: enrollment.course.id,
+          title: enrollment.course.title,
+          instructor: enrollment.course.teacher?.name || 'غير محدد',
+          progress: enrollment.progress || 0,
+          nextLesson: "الدرس التالي",
+          dueDate: new Date(enrollment.enrolled_at).toLocaleDateString('ar-SA'),
+        })) || []
+
+        setStudentData({
+          name: userProfile?.name || '',
+          avatar: userProfile?.avatar_url,
+          stats: {
+            enrolledCourses: (stats as any)?.enrolledCourses || 0,
+            completedLessons: (stats as any)?.completedLessons || 0,
+            totalHoursLearned: Math.floor(((stats as any)?.completedLessons || 0) * 0.5), // Estimate 30 min per lesson
+          },
+          recentCourses,
+          upcomingAssignments: [], // Will be implemented later
+          achievements: studentData.achievements
+        })
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout userRole="student" userName={studentData.name} userAvatar={studentData.avatar}>
+        <div className="py-6 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
   return (
     <DashboardLayout userRole="student" userName={studentData.name} userAvatar={studentData.avatar}>
       <div className="py-6 px-6">
@@ -98,25 +125,25 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* المهام المعلقة */}
+            {/* الدروس المكتملة */}
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-2xl text-white shadow-lg transform hover:scale-105 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm font-medium">المهام المعلقة</p>
-                  <p className="text-3xl font-bold mt-2">{studentData.stats.pendingAssignments}</p>
+                  <p className="text-orange-100 text-sm font-medium">الدروس المكتملة</p>
+                  <p className="text-3xl font-bold mt-2">{studentData.stats.completedLessons}</p>
                 </div>
-                <ClockIcon className="h-8 w-8 text-orange-200" />
+                <CheckCircleIcon className="h-8 w-8 text-orange-200" />
               </div>
             </div>
 
-            {/* المهام المكتملة */}
+            {/* ساعات التعلم */}
             <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-2xl text-white shadow-lg transform hover:scale-105 transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm font-medium">المهام المكتملة</p>
-                  <p className="text-3xl font-bold mt-2">{studentData.stats.completedAssignments}</p>
+                  <p className="text-green-100 text-sm font-medium">ساعات التعلم</p>
+                  <p className="text-3xl font-bold mt-2">{studentData.stats.totalHoursLearned} ساعة</p>
                 </div>
-                <CheckCircleIcon className="h-8 w-8 text-green-200" />
+                <ChartBarIcon className="h-8 w-8 text-green-200" />
               </div>
             </div>
 
