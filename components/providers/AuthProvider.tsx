@@ -18,9 +18,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
-        const session = getSession();
+        const session = await getSession();
         if (session) {
           setUser(session.user);
         }
