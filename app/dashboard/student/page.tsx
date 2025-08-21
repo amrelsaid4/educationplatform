@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/components/providers/AuthProvider'
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
 import { 
   BookOpenIcon, 
@@ -9,12 +10,14 @@ import {
   ClockIcon,
   ChartBarIcon 
 } from "@heroicons/react/24/outline";
-import { getStudentEnrollments, getDashboardStats } from '../../../lib/course-utils'
+import { getStudentEnrollments } from '../../../lib/course-utils'
 import { getCurrentUser } from '../../../lib/auth-utils'
 import { supabase } from '../../../lib/supabase'
 import type { CourseEnrollment } from '../../../lib/course-utils'
+import StudentAchievements from '@/components/StudentAchievements'
 
 export default function StudentDashboard() {
+  const { user } = useAuth()
   const [studentData, setStudentData] = useState({
     name: "",
     avatar: undefined,
@@ -46,8 +49,12 @@ export default function StudentDashboard() {
       if (user) {
         const { user: userProfile } = await getCurrentUser(user.id)
         
-        // Get dashboard stats
-        const { data: stats } = await getDashboardStats('student', user.id)
+        // Get dashboard stats - placeholder for now
+        const stats = {
+          enrolledCourses: 0,
+          completedLessons: 0,
+          totalHoursLearned: 0
+        }
         
         // Get enrolled courses
         const { data: enrollments } = await getStudentEnrollments(user.id)
@@ -224,25 +231,8 @@ export default function StudentDashboard() {
                 </div>
               </div>
 
-              {/* Recent Achievements */}
-              <div className="bg-white dark:bg-gray-800 shadow-xl rounded-2xl border border-gray-100 dark:border-gray-700">
-                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">الإنجازات الأخيرة</h3>
-                </div>
-                <div className="p-6">
-                  <div className="space-y-4">
-                    {studentData.achievements.slice(0, 1).map((achievement, index) => (
-                      <div key={index} className="flex items-center space-x-3 space-x-reverse p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg">
-                        <div className="text-2xl">{achievement.icon}</div>
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{achievement.name}</h4>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">{achievement.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              {/* Student Achievements */}
+                              <StudentAchievements userId={user?.id || ''} />
             </div>
           </div>
         </div>

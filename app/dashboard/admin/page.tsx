@@ -107,13 +107,6 @@ export default function AdminDashboard() {
       setLoading(false)
     }
   }
-      description: "بعض المدفوعات تفشل في المعالجة",
-      time: "منذ 4 ساعات",
-    },
-  ]
-};
-
-  }
 
   if (loading) {
     return (
