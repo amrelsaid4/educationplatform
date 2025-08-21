@@ -5,7 +5,7 @@ import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { supabase } from '../lib/supabase'
 
 interface VideoUploadProps {
-  onUploadComplete: (url: string) => void
+  onUploadComplete: (url: string, duration?: number) => void
   onUploadError: (error: string) => void
   className?: string
 }
@@ -56,7 +56,26 @@ export default function VideoUpload({ onUploadComplete, onUploadError, className
 
       console.log('Public URL:', publicUrl)
       setUploadProgress(100)
-      onUploadComplete(publicUrl)
+      
+      // Get video duration
+      try {
+        const video = document.createElement('video')
+        video.src = publicUrl
+        video.preload = 'metadata'
+        
+        video.onloadedmetadata = () => {
+          const durationInMinutes = Math.ceil(video.duration / 60)
+          onUploadComplete(publicUrl, durationInMinutes)
+        }
+        
+        video.onerror = () => {
+          // If we can't get duration, just pass the URL
+          onUploadComplete(publicUrl)
+        }
+      } catch (error) {
+        console.warn('Could not get video duration:', error)
+        onUploadComplete(publicUrl)
+      }
     } catch (error: any) {
       console.error('Error uploading video:', error)
       if (error?.message?.includes('Bucket not found')) {

@@ -41,7 +41,7 @@ const navigationItems = {
     { name: "الرئيسية", href: "/dashboard/teacher", icon: HomeIcon },
     { name: "كورساتي", href: "/dashboard/teacher/courses", icon: BookOpenIcon },
     { name: "إضافة كورس جديد", href: "/dashboard/teacher/courses/create", icon: BookOpenIcon },
-    { name: "المهام", href: "/dashboard/teacher/assignments", icon: ClipboardDocumentCheckIcon },
+    { name: "المهام", href: "/dashboard/teacher/tasks", icon: ClipboardDocumentCheckIcon },
     { name: "الطلاب", href: "/dashboard/teacher/students", icon: UserIcon },
     { name: "التحليلات", href: "/dashboard/teacher/analytics", icon: ChartBarIcon },
   ],
@@ -57,8 +57,8 @@ const navigationItems = {
 
 export default function DashboardLayout({
   children,
-  userRole,
-  userName,
+  userRole = "student",
+  userName = "",
   userAvatar,
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,7 +66,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { signOut } = useAuth();
 
-  const navigation = navigationItems[userRole];
+  const navigation = navigationItems[userRole] || [];
 
   const handleSignOut = async () => {
     await signOut();
@@ -89,7 +89,7 @@ export default function DashboardLayout({
             </button>
           </div>
           <div className="flex-shrink-0 flex items-center px-4">
-            <Link href="/" className="text-xl font-bold text-teal-600 dark:text-teal-400">
+            <Link href="/" className="text-xl font-bold text-[#49BBBD]">
               منصة التعلم الرقمي
             </Link>
           </div>
@@ -101,9 +101,9 @@ export default function DashboardLayout({
                   href={item.href}
                   className={`${
                     pathname === item.href
-                      ? "bg-teal-100 dark:bg-teal-900 text-teal-900 dark:text-teal-100"
+                      ? "bg-[#49BBBD]/10 text-[#49BBBD] border-r-2 border-[#49BBBD]"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-                  } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
+                  } group flex items-center px-2 py-2 text-base font-medium rounded-md transition-all duration-200`}
                 >
                   <item.icon className="ml-4 h-6 w-6" />
                   {item.name}
@@ -113,7 +113,7 @@ export default function DashboardLayout({
               {/* Sign Out Button for Mobile */}
               <button
                 onClick={handleSignOut}
-                className="w-full text-right text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 group flex items-center px-2 py-2 text-base font-medium rounded-md"
+                className="w-full text-right text-[#ef4444] hover:bg-[#ef4444]/10 hover:text-[#ef4444] group flex items-center px-2 py-2 text-base font-medium rounded-md transition-all duration-200"
               >
                 <svg className="ml-4 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -129,7 +129,7 @@ export default function DashboardLayout({
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:right-0">
         <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg">
           <div className="flex items-center flex-shrink-0 px-4">
-            <Link href="/" className="text-xl font-bold text-teal-600 dark:text-teal-400">
+            <Link href="/" className="text-xl font-bold text-[#49BBBD]">
               منصة التعلم الرقمي
             </Link>
           </div>
@@ -141,7 +141,7 @@ export default function DashboardLayout({
                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                className="block w-full pr-10 pl-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl text-sm placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#49BBBD] focus:border-[#49BBBD] bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200"
                 placeholder="البحث في الكورسات والمهام..."
                 type="search"
               />
@@ -156,9 +156,9 @@ export default function DashboardLayout({
                   href={item.href}
                   className={`${
                     pathname === item.href
-                      ? "bg-teal-100 dark:bg-teal-900 text-teal-900 dark:text-teal-100"
+                      ? "bg-[#49BBBD]/10 text-[#49BBBD] border-r-2 border-[#49BBBD]"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200`}
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200`}
                 >
                   <item.icon className="ml-3 h-6 w-6" />
                   {item.name}
@@ -174,7 +174,7 @@ export default function DashboardLayout({
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <button
             type="button"
-            className="px-4 border-l border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500 lg:hidden"
+            className="px-4 border-l border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#49BBBD] lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
             <Bars3Icon className="h-6 w-6" />
@@ -186,15 +186,15 @@ export default function DashboardLayout({
               <div className="flex items-center space-x-3 space-x-reverse">
                 <Image
                   className="h-8 w-8 rounded-full"
-                  src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=49BBBD&color=ffffff`}
-                  alt={userName}
+                  src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=49BBBD&color=ffffff`}
+                  alt={userName || 'User'}
                   width={32}
                   height={32}
                 />
-                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{userName}</span>
+                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{userName || 'User'}</span>
                 <button
                   type="button"
-                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#49BBBD]"
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                 >
                   <ChevronDownIcon className="h-4 w-4" />
@@ -206,44 +206,42 @@ export default function DashboardLayout({
               {/* Notifications */}
               <button
                 type="button"
-                className="bg-white dark:bg-gray-800 p-2 rounded-full text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
+                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#49BBBD]"
               >
-                <BellIcon className="h-5 w-5" />
+                <BellIcon className="h-6 w-6" />
               </button>
-
-              {/* Profile dropdown */}
-              {userMenuOpen && (
-                <div className="origin-top-left absolute left-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50">
-                  <Link
-                    href={`/dashboard/${userRole}/profile`}
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    الملف الشخصي
-                  </Link>
-                  <Link
-                    href={`/dashboard/${userRole}/settings`}
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    الإعدادات
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    className="block w-full text-right px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300"
-                  >
-                    تسجيل الخروج
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        <main className="flex-1 bg-gray-50 dark:bg-gray-900">
+        {/* User dropdown menu */}
+        {userMenuOpen && (
+          <div className="absolute top-16 left-4 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
+            <Link
+              href="/dashboard/profile"
+              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => setUserMenuOpen(false)}
+            >
+              الملف الشخصي
+            </Link>
+            <Link
+              href="/dashboard/settings"
+              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => setUserMenuOpen(false)}
+            >
+              الإعدادات
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="block w-full text-right px-4 py-2 text-sm text-[#ef4444] hover:bg-[#ef4444]/10"
+            >
+              تسجيل الخروج
+            </button>
+          </div>
+        )}
+
+        {/* Page content */}
+        <main className="flex-1">
           {children}
         </main>
       </div>
