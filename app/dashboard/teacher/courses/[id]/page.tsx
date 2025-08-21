@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { PlusIcon, PencilIcon, EyeIcon, TrashIcon, BookOpenIcon, ClockIcon, UserIcon } from '@heroicons/react/24/outline'
-import { getCourseById, getCourseLessons, updateCourse } from '../../../../../lib/course-utils'
+import { PlusIcon, PencilIcon, EyeIcon, BookOpenIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { getCourseById, getCourseLessons, updateCourse, getCourseStats, updateCourseStats } from '../../../../../lib/course-utils'
 import { getCurrentUser } from '../../../../../lib/auth-utils'
 import { supabase } from '../../../../../lib/supabase'
 import DashboardLayout from '../../../../../components/layouts/DashboardLayout'
@@ -16,6 +16,7 @@ export default function TeacherCourseDetailPage() {
   
   const [course, setCourse] = useState<Course | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
+  const [courseStats, setCourseStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [updating, setUpdating] = useState(false)
@@ -43,34 +44,15 @@ export default function TeacherCourseDetailPage() {
         // Get course lessons
         const { data: lessonsData } = await getCourseLessons(courseId)
         setLessons(lessonsData || [])
+        
+        // Get actual course statistics
+        const { data: statsData } = await getCourseStats(courseId)
+        setCourseStats(statsData)
       }
     } catch (error) {
       console.error('Error loading course data:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handlePublishCourse = async () => {
-    if (!course) return
-
-    try {
-      setUpdating(true)
-      const { error } = await updateCourse(course.id, { status: 'published' })
-      
-      if (error) {
-        alert('حدث خطأ أثناء نشر الكورس')
-        return
-      }
-
-      // Refresh course data
-      await loadCourseData()
-      alert('تم نشر الكورس بنجاح!')
-    } catch (error) {
-      console.error('Error publishing course:', error)
-      alert('حدث خطأ أثناء نشر الكورس')
-    } finally {
-      setUpdating(false)
     }
   }
 
@@ -239,7 +221,9 @@ export default function TeacherCourseDetailPage() {
                     <ClockIcon className="h-5 w-5 text-gray-400 mr-2" />
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">المدة الإجمالية</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{course.duration_hours} ساعة</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {courseStats?.total_duration || 0} ساعة
+                      </p>
                     </div>
                   </div>
                   
@@ -247,15 +231,9 @@ export default function TeacherCourseDetailPage() {
                     <BookOpenIcon className="h-5 w-5 text-gray-400 mr-2" />
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">عدد الدروس</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{course.total_lessons} درس</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <UserIcon className="h-5 w-5 text-gray-400 mr-2" />
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">عدد الطلاب</p>
-                      <p className="font-medium text-gray-900 dark:text-white">{course.enrollment_count} طالب</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {lessons.length} درس
+                      </p>
                     </div>
                   </div>
                   
@@ -367,14 +345,14 @@ export default function TeacherCourseDetailPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">إجمالي الطلاب</span>
                     <span className="font-semibold text-gray-900 dark:text-white">
-                      {course.enrollment_count}
+                      {courseStats?.enrollment_count || 0}
                     </span>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">إجمالي الدروس</span>
                     <span className="font-semibold text-gray-900 dark:text-white">
-                      {course.total_lessons}
+                      {courseStats?.total_lessons || 0}
                     </span>
                   </div>
                   
@@ -391,39 +369,6 @@ export default function TeacherCourseDetailPage() {
                       {getStatusText(course.status)}
                     </span>
                   </div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  إجراءات سريعة
-                </h3>
-                
-                <div className="space-y-3">
-                  <button
-                    onClick={() => router.push(`/dashboard/teacher/courses/${courseId}/lessons/create`)}
-                    className="w-full flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                  >
-                    <PlusIcon className="h-4 w-4 mr-2" />
-                    إضافة درس جديد
-                  </button>
-                  
-                  <button
-                    onClick={() => router.push(`/dashboard/teacher/courses/${courseId}/edit`)}
-                    className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                  >
-                    <PencilIcon className="h-4 w-4 mr-2" />
-                    تعديل الكورس
-                  </button>
-                  
-                  <button
-                    onClick={() => router.push(`/courses/${courseId}`)}
-                    className="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                  >
-                    <EyeIcon className="h-4 w-4 mr-2" />
-                    عرض الكورس
-                  </button>
                 </div>
               </div>
             </div>

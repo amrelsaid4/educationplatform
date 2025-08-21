@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeftIcon, PencilIcon } from '@heroicons/react/24/outline'
-import { updateCourse, getCourseById } from '../../../../../lib/course-utils'
-import { getCurrentUser } from '../../../../../lib/auth-utils'
-import { supabase } from '../../../../../lib/supabase'
-import DashboardLayout from '../../../../../components/layouts/DashboardLayout'
+import { updateCourse, getCourseById } from '../../../../../../lib/course-utils'
+import { getCurrentUser } from '../../../../../../lib/auth-utils'
+import { supabase } from '../../../../../../lib/supabase'
+import DashboardLayout from '../../../../../../components/layouts/DashboardLayout'
 
 export default function EditCoursePage() {
   const params = useParams()
@@ -20,12 +20,12 @@ export default function EditCoursePage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    level: 'beginner',
+    level: 'beginner' as 'beginner' | 'intermediate' | 'advanced',
     category: '',
     price: 0,
     is_free: false,
     language: 'ar',
-    status: 'draft'
+    status: 'draft' as 'draft' | 'published' | 'archived'
   })
 
   useEffect(() => {
@@ -34,7 +34,14 @@ export default function EditCoursePage() {
 
   const loadData = async () => {
     try {
-      const currentUser = await getCurrentUser()
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      const { user: currentUser } = await getCurrentUser(user.id)
       if (!currentUser) {
         router.push('/login')
         return
@@ -47,7 +54,7 @@ export default function EditCoursePage() {
 
       setUser(currentUser)
 
-      const courseData = await getCourseById(courseId)
+      const { data: courseData } = await getCourseById(courseId)
       if (!courseData) {
         alert('الكورس غير موجود')
         router.push('/dashboard/teacher/courses')
@@ -84,7 +91,8 @@ export default function EditCoursePage() {
     const { name, value, type } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
+              type === 'number' ? parseFloat(value) || 0 : value
     }))
   }
 
@@ -120,7 +128,7 @@ export default function EditCoursePage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
+      <DashboardLayout userRole="teacher" userName={user?.name || ''} userAvatar={user?.avatar_url}>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-lg">جاري التحميل...</div>
         </div>
@@ -129,7 +137,7 @@ export default function EditCoursePage() {
   }
 
   return (
-    <DashboardLayout>
+    <DashboardLayout userRole="teacher" userName={user?.name || ''} userAvatar={user?.avatar_url}>
       <div className="max-w-4xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

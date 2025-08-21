@@ -97,7 +97,7 @@ export default function CreateCoursePage() {
             <div className="flex items-center mb-4">
               <button
                 onClick={() => router.back()}
-                className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mr-4"
+                className="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mr-4 transition-colors"
               >
                 <ArrowLeftIcon className="h-5 w-5 mr-1" />
                 رجوع
@@ -110,11 +110,12 @@ export default function CreateCoursePage() {
           </div>
 
           {/* Form */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="card">
+            <form onSubmit={handleSubmit} className="space-y-8">
               {/* Basic Information */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                  <div className="w-2 h-8 bg-gradient-to-b from-[#49BBBD] to-[#06b6d4] rounded-full ml-3"></div>
                   المعلومات الأساسية
                 </h3>
                 
@@ -128,7 +129,7 @@ export default function CreateCoursePage() {
                       name="title"
                       value={formData.title}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-transparent transition-all duration-200"
                       placeholder="أدخل عنوان الكورس"
                       required
                     />
@@ -143,7 +144,7 @@ export default function CreateCoursePage() {
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-transparent transition-all duration-200"
                       placeholder="مثال: الرياضيات، البرمجة، اللغات"
                     />
                   </div>
@@ -158,7 +159,7 @@ export default function CreateCoursePage() {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-transparent transition-all duration-200 resize-none"
                     placeholder="اكتب وصفاً مفصلاً للكورس"
                     required
                   />
@@ -167,7 +168,8 @@ export default function CreateCoursePage() {
 
               {/* Course Settings */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                  <div className="w-2 h-8 bg-gradient-to-b from-[#06b6d4] to-[#0891b2] rounded-full ml-3"></div>
                   إعدادات الكورس
                 </h3>
                 
@@ -180,7 +182,7 @@ export default function CreateCoursePage() {
                       name="level"
                       value={formData.level}
                       onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-transparent transition-all duration-200"
                     >
                       <option value="beginner">مبتدئ</option>
                       <option value="intermediate">متوسط</option>
@@ -200,7 +202,7 @@ export default function CreateCoursePage() {
                       min="0"
                       step="0.01"
                       disabled={formData.is_free}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-transparent transition-all duration-200 disabled:opacity-50"
                       placeholder="0"
                     />
                   </div>
@@ -211,9 +213,9 @@ export default function CreateCoursePage() {
                       name="is_free"
                       checked={formData.is_free}
                       onChange={handleInputChange}
-                      className="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                      className="h-5 w-5 text-[#49BBBD] focus:ring-[#49BBBD] border-gray-300 rounded transition-all duration-200"
                     />
-                    <label className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="mr-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                       كورس مجاني
                     </label>
                   </div>
@@ -222,7 +224,8 @@ export default function CreateCoursePage() {
 
               {/* Thumbnail */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                  <div className="w-2 h-8 bg-gradient-to-b from-[#10b981] to-[#059669] rounded-full ml-3"></div>
                   صورة الكورس
                 </h3>
                 
@@ -235,37 +238,37 @@ export default function CreateCoursePage() {
                     name="thumbnail_url"
                     value={formData.thumbnail_url}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-transparent transition-all duration-200"
                     placeholder="https://example.com/image.jpg"
                   />
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     يمكنك إضافة رابط صورة للكورس (اختياري)
                   </p>
                 </div>
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end space-x-4 space-x-reverse pt-6 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex justify-end space-x-4 space-x-reverse pt-8 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={() => router.back()}
-                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="btn-secondary"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
                   {loading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white ml-2"></div>
                       جاري الإنشاء...
                     </>
                   ) : (
                     <>
-                      <PlusIcon className="h-4 w-4 mr-2" />
+                      <PlusIcon className="h-4 w-4 ml-2" />
                       إنشاء الكورس
                     </>
                   )}

@@ -7,6 +7,7 @@ import { getCurrentUser } from '../../../../lib/auth-utils'
 import type { Course } from '../../../../lib/course-utils'
 import DashboardLayout from '../../../../components/layouts/DashboardLayout'
 import { supabase } from '../../../../lib/supabase'
+import Link from 'next/link'
 
 export default function TeacherCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])
@@ -85,10 +86,10 @@ export default function TeacherCoursesPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-yellow-100 text-yellow-800'
-      case 'published': return 'bg-green-100 text-green-800'
-      case 'archived': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'draft': return 'bg-[#f59e0b]/10 text-[#f59e0b]'
+      case 'published': return 'bg-[#10b981]/10 text-[#10b981]'
+      case 'archived': return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
     }
   }
 
@@ -110,7 +111,7 @@ export default function TeacherCoursesPage() {
               <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                  <div key={i} className="card">
                     <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
                     <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
                   </div>
@@ -136,13 +137,12 @@ export default function TeacherCoursesPage() {
                   إدارة الكورسات والدروس
                 </p>
               </div>
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="flex items-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                إضافة كورس جديد
-              </button>
+              <Link href="/dashboard/teacher/courses/create">
+                <button className="btn-primary flex items-center">
+                  <PlusIcon className="h-5 w-5 ml-2" />
+                  إضافة كورس جديد
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -156,20 +156,19 @@ export default function TeacherCoursesPage() {
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 ابدأ بإنشاء كورسك الأول
               </p>
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="mt-4 flex items-center mx-auto bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-              >
-                <PlusIcon className="h-5 w-5 mr-2" />
-                إضافة كورس جديد
-              </button>
+              <Link href="/dashboard/teacher/courses/create">
+                <button className="mt-4 btn-primary flex items-center">
+                  <PlusIcon className="h-5 w-5 ml-2" />
+                  إضافة كورس جديد
+                </button>
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => (
-                <div key={course.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={course.id} className="card overflow-hidden hover:shadow-2xl transition-all duration-300">
                   {/* Course Thumbnail */}
-                  <div className="h-48 bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center">
+                  <div className="h-48 bg-gradient-to-br from-[#49BBBD] to-[#06b6d4] flex items-center justify-center">
                     {course.thumbnail_url ? (
                       <img 
                         src={course.thumbnail_url} 
@@ -188,9 +187,9 @@ export default function TeacherCoursesPage() {
                         {getStatusText(course.status)}
                       </span>
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        course.level === 'beginner' ? 'bg-green-100 text-green-800' :
-                        course.level === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
+                        course.level === 'beginner' ? 'bg-[#10b981]/10 text-[#10b981]' :
+                        course.level === 'intermediate' ? 'bg-[#f59e0b]/10 text-[#f59e0b]' :
+                        'bg-[#ef4444]/10 text-[#ef4444]'
                       }`}>
                         {getLevelText(course.level)}
                       </span>
@@ -227,27 +226,25 @@ export default function TeacherCoursesPage() {
                     {/* Actions */}
                     <div className="flex items-center justify-between">
                       <div className="flex space-x-2 space-x-reverse">
-                        <button
-                          onClick={() => window.location.href = `/dashboard/teacher/courses/${course.id}`}
-                          className="flex items-center text-teal-600 hover:text-teal-700 font-medium text-sm"
-                        >
-                          <EyeIcon className="h-4 w-4 mr-1" />
-                          عرض
-                        </button>
-                        <button
-                          onClick={() => setEditingCourse(course)}
-                          className="flex items-center text-blue-600 hover:text-blue-700 font-medium text-sm"
-                        >
-                          <PencilIcon className="h-4 w-4 mr-1" />
-                          تعديل
-                        </button>
+                        <Link href={`/dashboard/teacher/courses/${course.id}`}>
+                          <button className="btn-secondary btn-sm">
+                            <EyeIcon className="h-4 w-4" />
+                            عرض
+                          </button>
+                        </Link>
+                        <Link href={`/dashboard/teacher/courses/${course.id}/edit`}>
+                          <button className="btn-primary btn-sm">
+                            <PencilIcon className="h-4 w-4" />
+                            تعديل
+                          </button>
+                        </Link>
                       </div>
 
                       <div className="flex space-x-2 space-x-reverse">
                         {course.status === 'draft' && (
                           <button
                             onClick={() => handlePublishCourse(course.id)}
-                            className="text-green-600 hover:text-green-700 text-sm font-medium"
+                            className="text-[#10b981] hover:text-[#10b981]/80 text-sm font-medium transition-colors"
                           >
                             نشر
                           </button>
@@ -255,7 +252,7 @@ export default function TeacherCoursesPage() {
                         {course.status === 'published' && (
                           <button
                             onClick={() => handleArchiveCourse(course.id)}
-                            className="text-gray-600 hover:text-gray-700 text-sm font-medium"
+                            className="text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-sm font-medium transition-colors"
                           >
                             أرشفة
                           </button>

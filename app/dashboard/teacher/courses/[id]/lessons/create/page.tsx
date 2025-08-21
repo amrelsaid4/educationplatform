@@ -105,6 +105,37 @@ export default function CreateLessonPage() {
     }
   }
 
+  const handleVideoUrlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+    setFormData(prev => ({ ...prev, video_url: value }))
+    
+    // Try to get video duration if it's a valid URL
+    if (value && value.startsWith('http')) {
+      try {
+        const video = document.createElement('video')
+        video.src = value
+        video.preload = 'metadata'
+        
+        video.onloadedmetadata = () => {
+          const durationInMinutes = Math.ceil(video.duration / 60)
+          setFormData(prev => ({ 
+            ...prev, 
+            video_url: value,
+            duration_minutes: durationInMinutes
+          }))
+        }
+        
+        video.onerror = () => {
+          // If we can't get duration, just update the URL
+          setFormData(prev => ({ ...prev, video_url: value }))
+        }
+      } catch (error) {
+        console.warn('Could not get video duration:', error)
+        setFormData(prev => ({ ...prev, video_url: value }))
+      }
+    }
+  }
+
   const addResourceUrl = () => {
     setFormData(prev => ({
       ...prev,
@@ -234,14 +265,18 @@ export default function CreateLessonPage() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     رفع فيديو جديد
                   </label>
-                  <VideoUpload
-                    onUploadComplete={(url) => {
-                      setFormData(prev => ({ ...prev, video_url: url }))
-                    }}
-                    onUploadError={(error) => {
-                      alert(error)
-                    }}
-                  />
+                                <VideoUpload
+                onUploadComplete={(url, duration) => {
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    video_url: url,
+                    duration_minutes: duration || prev.duration_minutes
+                  }))
+                }}
+                onUploadError={(error) => {
+                  alert(error)
+                }}
+              />
                 </div>
 
                 {/* Or use existing URL */}
@@ -250,17 +285,17 @@ export default function CreateLessonPage() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       أو رابط الفيديو
                     </label>
-                    <input
-                      type="url"
-                      name="video_url"
-                      value={formData.video_url}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      placeholder="https://example.com/video.mp4"
-                    />
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      يمكنك إضافة رابط فيديو من YouTube أو أي منصة أخرى
-                    </p>
+                                    <input
+                  type="url"
+                  name="video_url"
+                  value={formData.video_url}
+                  onChange={handleVideoUrlChange}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="https://example.com/video.mp4"
+                />
+                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  يمكنك إضافة رابط فيديو من YouTube أو أي منصة أخرى. سيتم تحديث مدة الفيديو تلقائياً عند إدخال الرابط.
+                </p>
                   </div>
 
                   <div>
