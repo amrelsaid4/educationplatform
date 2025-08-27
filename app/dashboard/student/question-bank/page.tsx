@@ -8,8 +8,8 @@ import { supabase } from '@/lib/supabase'
 import Dialog, { DialogFooter } from '@/components/ui/Dialog'
 import ActionIcons from '@/components/ui/ActionIcons'
 import { 
-  BookOpenIcon, 
-  AcademicCapIcon, 
+  BookOpenIcon,
+  AcademicCapIcon,
   TagIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -260,56 +260,56 @@ export default function StudentQuestionBankPage() {
     <DashboardLayout userRole="student" userName={userData.name} userAvatar={userData.avatar}>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            بنك الأسئلة
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            استكشف الأسئلة العامة من معلميك للتدريب والمراجعة
-          </p>
-        </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              بنك الأسئلة
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              استكشف الأسئلة العامة من معلميك للتدريب والمراجعة
+            </p>
+          </div>
 
         {/* Statistics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <BookOpenIcon className="w-8 h-8 text-blue-600" />
-              <div className="ml-3">
+              <div className="flex items-center">
+                <BookOpenIcon className="w-8 h-8 text-blue-600" />
+                <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">الدورات المسجلة</p>
                                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
                    {questions && questions.length > 0 ? new Set(questions.map(q => q.teacher.id)).size : 0}
                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
+              <div className="flex items-center">
               <AcademicCapIcon className="w-8 h-8 text-green-600" />
-              <div className="ml-3">
+                <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">المعلمون</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {teachers.length}
                 </p>
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
+              <div className="flex items-center">
               <TagIcon className="w-8 h-8 text-purple-600" />
-              <div className="ml-3">
+                <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">الأسئلة المتاحة</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {questions.length}
                 </p>
+                </div>
               </div>
             </div>
-          </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <ChartBarIcon className="w-8 h-8 text-orange-600" />
-              <div className="ml-3">
+              <div className="flex items-center">
+                <ChartBarIcon className="w-8 h-8 text-orange-600" />
+                <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">الفئات</p>
                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {categories.length}
@@ -324,7 +324,7 @@ export default function StudentQuestionBankPage() {
           <div className="flex items-center gap-4 mb-4">
             <FunnelIcon className="w-5 h-5 text-gray-500" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">الفلاتر</h3>
-          </div>
+            </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <select
@@ -393,32 +393,32 @@ export default function StudentQuestionBankPage() {
         </div>
 
         {/* Questions List */}
-        {filteredQuestions.length === 0 ? (
+          {filteredQuestions.length === 0 ? (
           <div className="text-center py-12">
             <TagIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
               لا توجد أسئلة
-            </h3>
+              </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {questions.length === 0 
                 ? 'لم يتم نشر أي أسئلة بعد في الكورسات المسجلة'
                 : 'لا توجد نتائج تطابق الفلاتر المحددة'
-              }
-            </p>
-          </div>
-        ) : (
+                }
+              </p>
+            </div>
+          ) : (
           <div className="space-y-4">
-            {filteredQuestions.map((question) => (
+              {filteredQuestions.map((question) => (
               <div
                 key={question.id}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
+                    <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      {question.question_text}
-                    </h3>
-                    
+                        {question.question_text}
+                      </h3>
+                      
                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                       <span>{getQuestionTypeText(question.question_type)}</span>
                       <span>•</span>
@@ -427,15 +427,15 @@ export default function StudentQuestionBankPage() {
                       </span>
                       <span>•</span>
                       <span>{question.teacher.name}</span>
-                      {question.category && (
+                        {question.category && (
                         <>
                           <span>•</span>
                           <span style={{ color: question.category.color }}>
                             {question.category.name}
                           </span>
                         </>
-                      )}
-                    </div>
+                        )}
+                      </div>
 
                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center gap-1">
@@ -453,9 +453,9 @@ export default function StudentQuestionBankPage() {
                   />
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+                          ))}
+                        </div>
+                      )}
 
         {/* View Question Dialog */}
         <Dialog
@@ -477,8 +477,8 @@ export default function StudentQuestionBankPage() {
                   </span>
                   <span>•</span>
                   <span>بواسطة: {selectedQuestion.teacher.name}</span>
-                </div>
-              </div>
+                      </div>
+                    </div>
 
               {selectedQuestion.question_type === 'multiple_choice' && selectedQuestion.options && (
                 <div>
@@ -527,8 +527,8 @@ export default function StudentQuestionBankPage() {
                     <p className="text-blue-800 dark:text-blue-200 text-sm">
                       {selectedQuestion.explanation}
                     </p>
+                    </div>
                   </div>
-                </div>
               )}
 
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -551,8 +551,8 @@ export default function StudentQuestionBankPage() {
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                   <ClockIcon className="w-4 h-4" />
                   <span>المستوى: {getDifficultyText(selectedQuestion.difficulty_level)}</span>
+                  </div>
                 </div>
-              </div>
 
               {selectedQuestion.tags && selectedQuestion.tags.length > 0 && (
                 <div>
@@ -567,9 +567,9 @@ export default function StudentQuestionBankPage() {
                       </span>
                     ))}
                   </div>
-                </div>
-              )}
             </div>
+          )}
+        </div>
           )}
 
           <DialogFooter>

@@ -195,7 +195,10 @@ export default function StudentDashboard() {
                             </div>
                           </div>
                           
-                          <button className="mr-6 inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium rounded-lg hover:from-teal-600 hover:to-teal-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                          <button 
+                            onClick={() => window.location.href = `/dashboard/student/courses/${course.id}`}
+                            className="mr-6 inline-flex items-center px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium rounded-lg hover:from-teal-600 hover:to-teal-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                          >
                             <PlayIcon className="h-4 w-4 ml-2" />
                             متابعة
                           </button>

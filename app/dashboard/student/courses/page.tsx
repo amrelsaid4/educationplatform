@@ -65,7 +65,7 @@ export default function StudentCoursesPage() {
   useEffect(() => {
     if (user?.id) {
       loadUserData()
-      loadData()
+    loadData()
     }
   }, [user])
 
@@ -338,14 +338,14 @@ export default function StudentCoursesPage() {
                             <PlayIcon className="w-4 h-4" />
                             {course.enrollment.status === 'completed' ? 'مراجعة' : 'متابعة'}
                           </button>
-                        ) : (
-                          <button
+                ) : (
+                  <button
                             onClick={() => openEnrollDialog(course)}
                             className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                          >
+                  >
                             تسجيل
-                          </button>
-                        )}
+                  </button>
+                )}
 
                         <ActionIcons
                           onView={() => openViewDialog(course)}
@@ -456,8 +456,8 @@ export default function StudentCoursesPage() {
                       <ChartBarIcon className="w-4 h-4" />
                       <span>التقدم: {selectedCourse.enrollment.progress_percentage}%</span>
                     </div>
-                  </div>
-                </div>
+              </div>
+            </div>
               )}
             </div>
           )}
@@ -513,7 +513,7 @@ export default function StudentCoursesPage() {
                   <li>• السعر: {selectedCourse.price === 0 ? 'مجاني' : `${selectedCourse.price} ريال`}</li>
                   <li>• اللغة: {selectedCourse.language}</li>
                 </ul>
-              </div>
+        </div>
             </div>
           )}
 

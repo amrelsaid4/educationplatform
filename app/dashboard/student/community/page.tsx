@@ -190,8 +190,8 @@ export default function StudentCommunityPage() {
       const { data, error } = await supabase
         .from('discussions')
         .insert({
-          title: newDiscussion.title,
-          content: newDiscussion.content,
+        title: newDiscussion.title,
+        content: newDiscussion.content,
           course_id: newDiscussion.courseId,
           author_id: user!.id
         })
@@ -550,7 +550,7 @@ export default function StudentCommunityPage() {
                           title="حذف المناقشة"
                         >
                           <TrashIcon className="w-4 h-4" />
-                        </button>
+                  </button>
                       </>
                     )}
                   </div>
