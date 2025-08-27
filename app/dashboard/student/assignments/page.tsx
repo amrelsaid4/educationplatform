@@ -5,13 +5,18 @@ import { useAuth } from '@/components/providers/AuthProvider'
 import DashboardLayout from '@/components/layouts/DashboardLayout'
 import { getAvailableAssignments, submitAssignment } from '@/lib/course-utils'
 import { getCurrentUser } from '@/lib/auth-utils'
+import Dialog, { DialogFooter } from '@/components/ui/Dialog'
+import ActionIcons from '@/components/ui/ActionIcons'
 import { 
   BookOpenIcon, 
   ClockIcon, 
   CheckCircleIcon,
   XCircleIcon,
   DocumentTextIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  EyeIcon,
+  PencilIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline'
 
 interface Assignment {
@@ -44,6 +49,7 @@ export default function StudentAssignmentsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [submissionContent, setSubmissionContent] = useState('')
   const [showSubmissionModal, setShowSubmissionModal] = useState(false)
+  const [showViewDialog, setShowViewDialog] = useState(false)
   const [userData, setUserData] = useState({ name: '', avatar: '' })
 
   useEffect(() => {
@@ -107,6 +113,16 @@ export default function StudentAssignmentsPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const openViewDialog = (assignment: Assignment) => {
+    setSelectedAssignment(assignment)
+    setShowViewDialog(true)
+  }
+
+  const openSubmissionModal = (assignment: Assignment) => {
+    setSelectedAssignment(assignment)
+    setShowSubmissionModal(true)
   }
 
   const getAssignmentTypeIcon = (type: string) => {
@@ -236,80 +252,149 @@ export default function StudentAssignmentsPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => {
-                    setSelectedAssignment(assignment)
-                    setShowSubmissionModal(true)
-                  }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  تسليم الواجب
-                </button>
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => openSubmissionModal(assignment)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    تسليم الواجب
+                  </button>
+
+                  <ActionIcons
+                    onView={() => openViewDialog(assignment)}
+                    viewTitle="عرض تفاصيل الواجب"
+                  />
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Submission Modal */}
-        {showSubmissionModal && selectedAssignment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    تسليم الواجب: {selectedAssignment.title}
-                  </h2>
-                  <button
-                    onClick={() => setShowSubmissionModal(false)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    <XCircleIcon className="w-6 h-6" />
-                  </button>
+        {/* View Assignment Dialog */}
+        <Dialog
+          isOpen={showViewDialog}
+          onClose={() => setShowViewDialog(false)}
+          title="تفاصيل الواجب"
+        >
+          {selectedAssignment && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {selectedAssignment.title}
+                </h3>
+                <div className="flex items-center gap-2 mb-3">
+                  {getAssignmentTypeIcon(selectedAssignment.assignment_type)}
+                  <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    {getAssignmentTypeText(selectedAssignment.assignment_type)}
+                  </span>
+                  {isOverdue(selectedAssignment.due_date) && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                      متأخر
+                    </span>
+                  )}
                 </div>
+              </div>
 
-                <div className="mb-4">
-                  <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                  {selectedAssignment.description}
+                </p>
+              </div>
+
+              {selectedAssignment.instructions && (
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                     تعليمات الواجب:
-                  </h3>
+                  </h4>
                   <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                     <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-line">
-                      {selectedAssignment.instructions || 'لا توجد تعليمات محددة لهذا الواجب.'}
+                      {selectedAssignment.instructions}
                     </p>
                   </div>
                 </div>
+              )}
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    إجابة الواجب:
-                  </label>
-                  <textarea
-                    value={submissionContent}
-                    onChange={(e) => setSubmissionContent(e.target.value)}
-                    rows={8}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="اكتب إجابتك هنا..."
-                  />
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <BookOpenIcon className="w-4 h-4" />
+                  <span>الكورس: {selectedAssignment.course.title}</span>
                 </div>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={handleSubmitAssignment}
-                    disabled={submitting || !submissionContent.trim()}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                  >
-                    {submitting ? 'جاري التسليم...' : 'تسليم الواجب'}
-                  </button>
-                  <button
-                    onClick={() => setShowSubmissionModal(false)}
-                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors"
-                  >
-                    إلغاء
-                  </button>
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <AcademicCapIcon className="w-4 h-4" />
+                  <span>المعلم: {selectedAssignment.course.teacher.name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <ClockIcon className="w-4 h-4" />
+                  <span>آخر موعد: {formatDate(selectedAssignment.due_date)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <CheckCircleIcon className="w-4 h-4" />
+                  <span>الدرجة القصوى: {selectedAssignment.max_score}</span>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+
+          <DialogFooter>
+            <button
+              onClick={() => setShowViewDialog(false)}
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+            >
+              إغلاق
+            </button>
+          </DialogFooter>
+        </Dialog>
+
+        {/* Submission Modal */}
+        <Dialog
+          isOpen={showSubmissionModal}
+          onClose={() => setShowSubmissionModal(false)}
+          title="تسليم الواجب"
+        >
+          {selectedAssignment && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                  تعليمات الواجب:
+                </h3>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-line">
+                    {selectedAssignment.instructions || 'لا توجد تعليمات محددة لهذا الواجب.'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  إجابة الواجب:
+                </label>
+                <textarea
+                  value={submissionContent}
+                  onChange={(e) => setSubmissionContent(e.target.value)}
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="اكتب إجابتك هنا..."
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <button
+              onClick={handleSubmitAssignment}
+              disabled={submitting || !submissionContent.trim()}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              {submitting ? 'جاري التسليم...' : 'تسليم الواجب'}
+            </button>
+            <button
+              onClick={() => setShowSubmissionModal(false)}
+              className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              إلغاء
+            </button>
+          </DialogFooter>
+        </Dialog>
       </div>
     </DashboardLayout>
   )

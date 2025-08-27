@@ -12,7 +12,10 @@ import {
   UserCircleIcon,
   ClockIcon,
   EyeIcon,
-  HeartIcon
+  HeartIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 
 interface Discussion {
@@ -41,7 +44,16 @@ export default function StudentCommunityPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [showNewDiscussion, setShowNewDiscussion] = useState(false)
+  const [showViewDialog, setShowViewDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null)
   const [newDiscussion, setNewDiscussion] = useState({
+    title: '',
+    content: '',
+    courseId: ''
+  })
+  const [editDiscussion, setEditDiscussion] = useState({
     title: '',
     content: '',
     courseId: ''
@@ -49,6 +61,7 @@ export default function StudentCommunityPage() {
   const [userData, setUserData] = useState({ name: '', avatar: '' })
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
@@ -220,6 +233,76 @@ export default function StudentCommunityPage() {
     }
   }
 
+  const handleEditDiscussion = async () => {
+    if (!selectedDiscussion || !editDiscussion.title.trim() || !editDiscussion.content.trim()) {
+      alert('يرجى ملء جميع الحقول المطلوبة')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const { error } = await supabase
+        .from('discussions')
+        .update({
+          title: editDiscussion.title,
+          content: editDiscussion.content
+        })
+        .eq('id', selectedDiscussion.id)
+        .eq('author_id', user!.id)
+
+      if (error) {
+        console.error('Error updating discussion:', error)
+        alert('فشل في تحديث المناقشة')
+        return
+      }
+
+      setDiscussions(prev => prev.map(d => 
+        d.id === selectedDiscussion.id 
+          ? { ...d, title: editDiscussion.title, content: editDiscussion.content }
+          : d
+      ))
+
+      setShowEditDialog(false)
+      setSelectedDiscussion(null)
+      setEditDiscussion({ title: '', content: '', courseId: '' })
+      alert('تم تحديث المناقشة بنجاح')
+    } catch (error) {
+      console.error('Error updating discussion:', error)
+      alert('فشل في تحديث المناقشة')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleDeleteDiscussion = async () => {
+    if (!selectedDiscussion) return
+
+    setDeleting(true)
+    try {
+      const { error } = await supabase
+        .from('discussions')
+        .delete()
+        .eq('id', selectedDiscussion.id)
+        .eq('author_id', user!.id)
+
+      if (error) {
+        console.error('Error deleting discussion:', error)
+        alert('فشل في حذف المناقشة')
+        return
+      }
+
+      setDiscussions(prev => prev.filter(d => d.id !== selectedDiscussion.id))
+      setShowDeleteDialog(false)
+      setSelectedDiscussion(null)
+      alert('تم حذف المناقشة بنجاح')
+    } catch (error) {
+      console.error('Error deleting discussion:', error)
+      alert('فشل في حذف المناقشة')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const handleLikeDiscussion = async (discussionId: string) => {
     try {
       const discussion = discussions.find(d => d.id === discussionId)
@@ -266,6 +349,26 @@ export default function StudentCommunityPage() {
     } catch (error) {
       console.error('Error toggling like:', error)
     }
+  }
+
+  const openViewDialog = (discussion: Discussion) => {
+    setSelectedDiscussion(discussion)
+    setShowViewDialog(true)
+  }
+
+  const openEditDialog = (discussion: Discussion) => {
+    setSelectedDiscussion(discussion)
+    setEditDiscussion({
+      title: discussion.title,
+      content: discussion.content,
+      courseId: discussion.course.id
+    })
+    setShowEditDialog(true)
+  }
+
+  const openDeleteDialog = (discussion: Discussion) => {
+    setSelectedDiscussion(discussion)
+    setShowDeleteDialog(true)
   }
 
   const formatDate = (dateString: string) => {
@@ -422,12 +525,215 @@ export default function StudentCommunityPage() {
                     </div>
                   </div>
 
-                  <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                    عرض التفاصيل
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openViewDialog(discussion)}
+                      className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-lg transition-colors"
+                      title="عرض التفاصيل"
+                    >
+                      <EyeIcon className="w-4 h-4" />
+                    </button>
+                    
+                    {discussion.author.id === user?.id && (
+                      <>
+                        <button
+                          onClick={() => openEditDialog(discussion)}
+                          className="p-2 text-yellow-600 hover:bg-yellow-100 dark:hover:bg-yellow-900 rounded-lg transition-colors"
+                          title="تعديل المناقشة"
+                        >
+                          <PencilIcon className="w-4 h-4" />
+                        </button>
+                        
+                        <button
+                          onClick={() => openDeleteDialog(discussion)}
+                          className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-lg transition-colors"
+                          title="حذف المناقشة"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* View Discussion Dialog */}
+        {showViewDialog && selectedDiscussion && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    تفاصيل المناقشة
+                  </h2>
+                  <button
+                    onClick={() => setShowViewDialog(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      {selectedDiscussion.title}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
+                      <span>بواسطة: {selectedDiscussion.author.name}</span>
+                      <span>•</span>
+                      <span>الكورس: {selectedDiscussion.course.title}</span>
+                      <span>•</span>
+                      <span>{formatDate(selectedDiscussion.created_at)}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                      {selectedDiscussion.content}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <HeartIcon className="w-4 h-4" />
+                      <span>{selectedDiscussion.likes_count} إعجاب</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                      <span>{selectedDiscussion.replies_count} رد</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <EyeIcon className="w-4 h-4" />
+                      <span>{selectedDiscussion.views_count} مشاهدة</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={() => setShowViewDialog(false)}
+                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
+                  >
+                    إغلاق
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Discussion Dialog */}
+        {showEditDialog && selectedDiscussion && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    تعديل المناقشة
+                  </h2>
+                  <button
+                    onClick={() => setShowEditDialog(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      العنوان
+                    </label>
+                    <input
+                      type="text"
+                      value={editDiscussion.title}
+                      onChange={(e) => setEditDiscussion(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="اكتب عنوان المناقشة..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      المحتوى
+                    </label>
+                    <textarea
+                      value={editDiscussion.content}
+                      onChange={(e) => setEditDiscussion(prev => ({ ...prev, content: e.target.value }))}
+                      rows={6}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="اكتب محتوى المناقشة..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleEditDiscussion}
+                    disabled={submitting || !editDiscussion.title.trim() || !editDiscussion.content.trim()}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {submitting ? 'جاري التحديث...' : 'تحديث المناقشة'}
+                  </button>
+                  <button
+                    onClick={() => setShowEditDialog(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Discussion Dialog */}
+        {showDeleteDialog && selectedDiscussion && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    حذف المناقشة
+                  </h2>
+                  <button
+                    onClick={() => setShowDeleteDialog(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="mb-6">
+                  <p className="text-gray-600 dark:text-gray-300">
+                    هل أنت متأكد من حذف المناقشة "{selectedDiscussion.title}"؟
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    لا يمكن التراجع عن هذا الإجراء.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleDeleteDiscussion}
+                    disabled={deleting}
+                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    {deleting ? 'جاري الحذف...' : 'حذف'}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteDialog(false)}
+                    className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -444,7 +750,7 @@ export default function StudentCommunityPage() {
                     onClick={() => setShowNewDiscussion(false)}
                     className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    <PlusIcon className="w-6 h-6 rotate-45" />
+                    <XMarkIcon className="w-6 h-6" />
                   </button>
                 </div>
 
