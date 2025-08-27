@@ -22,10 +22,12 @@ interface Student {
 
 export default function TeacherStudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
+  const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [selectedCourse, setSelectedCourse] = useState<string>('all')
   const router = useRouter()
 
   useEffect(() => {
@@ -41,6 +43,17 @@ export default function TeacherStudentsPage() {
       if (user) {
         const { user: userProfile } = await getCurrentUser(user.id)
         setCurrentUser(userProfile)
+        
+        // Get teacher courses
+        const { data: coursesData, error: coursesError } = await supabase
+          .from("courses")
+          .select("id, title")
+          .eq("teacher_id", user.id)
+          .order("title");
+        
+        if (!coursesError) {
+          setCourses(coursesData || []);
+        }
         
         // Get teacher students from database
         const { data: studentsData, error } = await getTeacherStudents(user.id)
@@ -126,7 +139,8 @@ export default function TeacherStudentsPage() {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          student.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filter === 'all' || student.status === filter
-    return matchesSearch && matchesFilter
+    const matchesCourse = selectedCourse === 'all' || true // TODO: Implement course filtering when we have course data
+    return matchesSearch && matchesFilter && matchesCourse
   })
 
   if (loading) {
@@ -185,6 +199,19 @@ export default function TeacherStudentsPage() {
             </div>
             
             <div className="flex space-x-2 space-x-reverse">
+              <select
+                value={selectedCourse}
+                onChange={(e) => setSelectedCourse(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#49BBBD] focus:border-[#49BBBD]"
+              >
+                <option value="all">جميع الكورسات</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+              
               <button
                 onClick={() => setFilter('all')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${

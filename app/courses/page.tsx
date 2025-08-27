@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { MagnifyingGlassIcon, PlayIcon, BookOpenIcon, ClockIcon, UserIcon } from '@heroicons/react/24/outline'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
 import { getPublishedCourses, searchCourses, enrollInCourse, getStudentEnrollments } from '../../lib/course-utils'
 import { getCurrentUser } from '../../lib/auth-utils'
 import type { Course, CourseEnrollment } from '../../lib/course-utils'
@@ -116,7 +117,7 @@ export default function CoursesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DashboardLayout userRole={currentUser?.role || "student"} userName={currentUser?.name || ""} userAvatar={currentUser?.avatar_url}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
@@ -131,12 +132,12 @@ export default function CoursesPage() {
             </div>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <DashboardLayout userRole={currentUser?.role || "student"} userName={currentUser?.name || ""} userAvatar={currentUser?.avatar_url}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -281,6 +282,6 @@ export default function CoursesPage() {
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

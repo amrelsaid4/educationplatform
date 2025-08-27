@@ -39,12 +39,17 @@ export default function Navbar() {
               >
                 الرئيسية
               </Link>
-              <Link
-                href="/courses"
-                className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium transition-colors duration-200"
+              <button
+                onClick={() => {
+                  const coursesSection = document.getElementById('courses-section');
+                  if (coursesSection) {
+                    coursesSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium transition-colors duration-200 cursor-pointer"
               >
-                الدورات
-              </Link>
+                كورساتي
+              </button>
               <Link
                 href="/features"
                 className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium transition-colors duration-200"
@@ -129,13 +134,18 @@ export default function Navbar() {
           >
             الرئيسية
           </Link>
-          <Link
-            href="/courses"
-            className="text-white hover:text-gray-200 block px-3 py-2 text-base font-medium transition-colors duration-200"
-            onClick={() => setNavbarOpen(false)}
+          <button
+            onClick={() => {
+              const coursesSection = document.getElementById('courses-section');
+              if (coursesSection) {
+                coursesSection.scrollIntoView({ behavior: 'smooth' });
+              }
+              setNavbarOpen(false);
+            }}
+            className="text-white hover:text-gray-200 block px-3 py-2 text-base font-medium transition-colors duration-200 cursor-pointer w-full text-right"
           >
-            الدورات
-          </Link>
+            كورساتي
+          </button>
           <Link
             href="/features"
             className="text-white hover:text-gray-200 block px-3 py-2 text-base font-medium transition-colors duration-200"

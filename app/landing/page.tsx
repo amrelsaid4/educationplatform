@@ -27,6 +27,7 @@ import {
   Sun,
   Moon,
   ArrowLeft,
+  Clock,
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
@@ -64,9 +65,7 @@ const LandingPage: React.FC = () => {
     router.push('/auth/register');
   };
 
-  const navigateToCourses = () => {
-    router.push('/courses');
-  };
+
 
   const stats = [
     { number: '15K+', label: 'طالب', icon: Users },
@@ -151,10 +150,18 @@ const LandingPage: React.FC = () => {
               <span>الرئيسية</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
             </a>
-            <a href="#courses" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
-              <span>الدورات</span>
+            <button
+              onClick={() => {
+                const coursesSection = document.getElementById('courses-section');
+                if (coursesSection) {
+                  coursesSection.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group cursor-pointer"
+            >
+              <span>كورساتي</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
-            </a>
+            </button>
             <a href="#features" className="text-white hover:text-teal-200 transition-all duration-300 font-medium relative group">
               <span>الميزات</span>
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white group-hover:w-full transition-all duration-300"></span>
@@ -171,12 +178,7 @@ const LandingPage: React.FC = () => {
 
           {/* Auth Buttons & Theme Toggle with enhanced styling */}
           <div className="hidden lg:flex items-center space-x-6" style={{ flexDirection: 'row-reverse' }}>
-            <button
-              onClick={navigateToCourses}
-              className="px-6 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              الكورسات
-            </button>
+
             <button
               onClick={navigateToLogin}
               className="px-6 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -218,15 +220,19 @@ const LandingPage: React.FC = () => {
               <a href="#home" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الرئيسية
               </a>
-              <a href="#courses" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
-                الدورات
-              </a>
               <button
-                onClick={() => { navigateToCourses(); toggleMenu(); }}
-                className="block w-full text-right py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300"
+                onClick={() => {
+                  const coursesSection = document.getElementById('courses-section');
+                  if (coursesSection) {
+                    coursesSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                  toggleMenu();
+                }}
+                className="block w-full text-right py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300 cursor-pointer"
               >
-                الكورسات المتاحة
+                كورساتي
               </button>
+
               <a href="#features" onClick={toggleMenu} className="block py-2 font-medium text-white hover:text-gray-200 transition-colors duration-300">
                 الميزات
               </a>
@@ -237,12 +243,6 @@ const LandingPage: React.FC = () => {
                 اتصل بنا
               </a>
               <div className="pt-4 space-y-2">
-                <button
-                  onClick={navigateToCourses}
-                  className="w-full px-6 py-2.5 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium"
-                >
-                  الكورسات
-                </button>
                 <button
                   onClick={navigateToLogin}
                   className="w-full px-6 py-2.5 rounded-full border-2 border-white text-white hover:bg-white hover:text-teal-600 transition-all duration-300 font-medium"
@@ -382,6 +382,168 @@ const LandingPage: React.FC = () => {
                   <div className={`text-base lg:text-lg font-medium transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-600'}`}>{stat.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Courses Section */}
+        <section id="courses-section" className={`py-24 transition-colors duration-300 ${theme === "dark" ? 'bg-dark-900' : 'bg-gray-50'}`}>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-20">
+              <h2 className={`text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-300 ${theme === "dark" ? 'text-white' : 'text-gray-900'}`}>
+                كورساتي
+              </h2>
+              <p className={`text-xl max-w-3xl mx-auto transition-colors duration-300 ${theme === "dark" ? 'text-gray-300' : 'text-gray-600'}`}>
+                اكتشف مجموعة متنوعة من الكورسات التعليمية المقدمة من أفضل الأساتذة
+              </p>
+            </div>
+
+            {/* Courses Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {/* Sample Course 1 */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                  <BookOpen size={48} className="text-white" />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                      مبتدئ
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      برمجة
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    أساسيات البرمجة
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                    تعلم أساسيات البرمجة من الصفر مع أفضل الممارسات والتطبيقات العملية
+                  </p>
+                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="flex items-center">
+                      <Users size={16} className="mr-1" />
+                      <span>150 طالب</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock size={16} className="mr-1" />
+                      <span>20 ساعة</span>
+                    </div>
+                    <div className="flex items-center">
+                      <BookOpen size={16} className="mr-1" />
+                      <span>15 درس</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      مجاني
+                    </div>
+                    <button className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                      تسجيل في الكورس
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sample Course 2 */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <div className="h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+                  <Video size={48} className="text-white" />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                      متوسط
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      تصميم
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    تصميم تجربة المستخدم
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                    تعلم مبادئ تصميم UX/UI وكيفية إنشاء تجارب مستخدم ممتازة
+                  </p>
+                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="flex items-center">
+                      <Users size={16} className="mr-1" />
+                      <span>89 طالب</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock size={16} className="mr-1" />
+                      <span>25 ساعة</span>
+                    </div>
+                    <div className="flex items-center">
+                      <BookOpen size={16} className="mr-1" />
+                      <span>18 درس</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      199 ريال
+                    </div>
+                    <button className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                      تسجيل في الكورس
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sample Course 3 */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <div className="h-48 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                  <GraduationCap size={48} className="text-white" />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                      متقدم
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      تطوير
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                    تطوير تطبيقات الويب
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                    تعلم تطوير تطبيقات الويب الحديثة باستخدام أحدث التقنيات
+                  </p>
+                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    <div className="flex items-center">
+                      <Users size={16} className="mr-1" />
+                      <span>234 طالب</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock size={16} className="mr-1" />
+                      <span>35 ساعة</span>
+                    </div>
+                    <div className="flex items-center">
+                      <BookOpen size={16} className="mr-1" />
+                      <span>22 درس</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
+                      299 ريال
+                    </div>
+                    <button className="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                      تسجيل في الكورس
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* View All Courses Button */}
+            <div className="text-center mt-12">
+              <button
+                onClick={() => window.location.href = '/courses'}
+                className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                عرض جميع الكورسات
+              </button>
             </div>
           </div>
         </section>

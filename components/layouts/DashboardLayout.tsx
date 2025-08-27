@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { logoutUser } from "@/lib/simple-auth";
+import NotificationsDropdown from "@/components/NotificationsDropdown";
 import {
   Bars3Icon,
   XMarkIcon,
@@ -34,6 +35,8 @@ const navigationItems = {
     { name: "الكورسات المتاحة", href: "/courses", icon: BookOpenIcon },
     { name: "كورساتي", href: "/dashboard/student/courses", icon: BookOpenIcon },
     { name: "المهام", href: "/dashboard/student/assignments", icon: ClipboardDocumentCheckIcon },
+    { name: "الامتحانات", href: "/dashboard/student/exams", icon: ClipboardDocumentCheckIcon },
+    { name: "بنك الأسئلة", href: "/dashboard/student/question-bank", icon: ClipboardDocumentCheckIcon },
     { name: "المجتمع", href: "/dashboard/student/community", icon: ChatBubbleLeftRightIcon },
     { name: "الملف الشخصي", href: "/dashboard/student/profile", icon: UserIcon },
   ],
@@ -41,8 +44,14 @@ const navigationItems = {
     { name: "الرئيسية", href: "/dashboard/teacher", icon: HomeIcon },
     { name: "كورساتي", href: "/dashboard/teacher/courses", icon: BookOpenIcon },
     { name: "إضافة كورس جديد", href: "/dashboard/teacher/courses/create", icon: BookOpenIcon },
+    { name: "الواجبات", href: "/dashboard/teacher/assignments", icon: ClipboardDocumentCheckIcon },
+    { name: "الامتحانات", href: "/dashboard/teacher/exams", icon: ClipboardDocumentCheckIcon },
+    { name: "بنك الأسئلة", href: "/dashboard/teacher/questions-bank", icon: ClipboardDocumentCheckIcon },
     { name: "المهام", href: "/dashboard/teacher/tasks", icon: ClipboardDocumentCheckIcon },
     { name: "الطلاب", href: "/dashboard/teacher/students", icon: UserIcon },
+    { name: "الرسائل", href: "/dashboard/teacher/messages", icon: ChatBubbleLeftRightIcon },
+    { name: "الإشعارات", href: "/dashboard/teacher/notifications", icon: BellIcon },
+    { name: "المدفوعات", href: "/dashboard/teacher/payments", icon: ChartBarIcon },
     { name: "التحليلات", href: "/dashboard/teacher/analytics", icon: ChartBarIcon },
   ],
   admin: [
@@ -116,7 +125,7 @@ export default function DashboardLayout({
                 className="w-full text-right text-[#ef4444] hover:bg-[#ef4444]/10 hover:text-[#ef4444] group flex items-center px-2 py-2 text-base font-medium rounded-md transition-all duration-200"
               >
                 <svg className="ml-4 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 تسجيل الخروج
               </button>
@@ -204,12 +213,7 @@ export default function DashboardLayout({
             
             <div className="flex items-center space-x-4 space-x-reverse">
               {/* Notifications */}
-              <button
-                type="button"
-                className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#49BBBD]"
-              >
-                <BellIcon className="h-6 w-6" />
-              </button>
+              <NotificationsDropdown />
             </div>
           </div>
         </div>

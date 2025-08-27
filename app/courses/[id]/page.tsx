@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/components/providers/AuthProvider'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
+import { getCurrentUser } from '@/lib/auth-utils'
 import { getCourseById, getCourseCompletionPercentage } from '@/lib/course-utils'
 import { BookOpenIcon, ClockIcon, UserIcon, StarIcon, PlayIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -35,11 +37,20 @@ export default function CoursePage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [completionPercentage, setCompletionPercentage] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [userData, setUserData] = useState({ name: '', avatar: '', role: 'student' as 'student' | 'admin' | 'teacher' })
 
   useEffect(() => {
     const loadCourse = async () => {
       if (params.id && user?.id) {
         try {
+          // Load user data
+          const { user: userProfile } = await getCurrentUser(user.id)
+          setUserData({
+            name: userProfile?.name || '',
+            avatar: userProfile?.avatar_url || '',
+            role: (userProfile?.role || 'student') as 'student' | 'admin' | 'teacher'
+          })
+
           const courseData = await getCourseById(params.id as string)
           if (courseData.data) {
             setCourse(courseData.data)
@@ -63,7 +74,7 @@ export default function CoursePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
@@ -81,20 +92,22 @@ export default function CoursePage() {
             </div>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">الكورس غير موجود</h1>
-          <Link href="/courses" className="text-blue-600 hover:text-blue-500">
-            العودة إلى الكورسات
-          </Link>
+      <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">الكورس غير موجود</h1>
+            <Link href="/courses" className="text-blue-600 hover:text-blue-500">
+              العودة إلى الكورسات
+            </Link>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
@@ -105,133 +118,130 @@ export default function CoursePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Course Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-4 mb-4">
             {course.category && (
-              <span 
-                className="px-3 py-1 rounded-full text-sm font-medium text-white"
+              <span
+                className="px-3 py-1 text-sm font-medium text-white rounded-full"
                 style={{ backgroundColor: course.category.color }}
               >
                 {course.category.name}
               </span>
             )}
-            <span className="text-gray-500 dark:text-gray-400">•</span>
-            <span className="text-gray-500 dark:text-gray-400">
-              {course.lessons?.length || 0} درس
-            </span>
+            <div className="flex items-center gap-1">
+              <StarIcon className="w-5 h-5 text-yellow-400 fill-current" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">4.8</span>
+            </div>
           </div>
           
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             {course.title}
           </h1>
           
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 max-w-3xl">
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
             {course.description}
           </p>
-
-          {/* Teacher Info */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              {course.teacher?.avatar_url ? (
-                <img 
-                  src={course.teacher.avatar_url} 
-                  alt={course.teacher.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                  <UserIcon className="w-6 h-6 text-gray-500" />
-                </div>
-              )}
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {course.teacher?.name || 'مدرس غير محدد'}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">المدرس</p>
-              </div>
+          
+          <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2">
+              <UserIcon className="w-5 h-5" />
+              <span>{course.teacher.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpenIcon className="w-5 h-5" />
+              <span>{course.lessons?.length || 0} درس</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ClockIcon className="w-5 h-5" />
+              <span>
+                {formatDuration(course.lessons.reduce((total, lesson) => total + lesson.duration, 0))}
+              </span>
             </div>
           </div>
-
-          {/* Progress Bar for Students */}
-          {user?.role === 'student' && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  تقدمك في الكورس
-                </h3>
-                <span className="text-2xl font-bold text-blue-600">
-                  {completionPercentage}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-300"
-                  style={{ width: `${completionPercentage}%` }}
-                ></div>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {course.lessons?.filter(lesson => lesson.is_completed).length || 0} من {course.lessons?.length || 0} درس مكتمل
-              </p>
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Course Content */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  محتوى الكورس
-                </h2>
+            {/* Course Image */}
+            {course.image_url && (
+              <div className="mb-8">
+                <img 
+                  src={course.image_url} 
+                  alt={course.title}
+                  className="w-full h-64 object-cover rounded-lg"
+                />
               </div>
+            )}
+
+            {/* Course Progress */}
+            {user?.role === 'student' && completionPercentage > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  تقدمك في الكورس
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">التقدم العام</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {completionPercentage}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${completionPercentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Course Lessons */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                محتوى الكورس
+              </h3>
               
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="space-y-4">
                 {course.lessons?.map((lesson, index) => (
-                  <div key={lesson.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          {lesson.is_completed ? (
-                            <CheckCircleIcon className="w-6 h-6 text-green-500" />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center">
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {index + 1}
-                              </span>
+                  <div
+                    key={lesson.id}
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                          {index + 1}
+                        </span>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-white">
+                          {lesson.title}
+                        </h4>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                          <span>{formatDuration(lesson.duration)}</span>
+                          {lesson.is_completed && (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <CheckCircleIcon className="w-4 h-4" />
+                              <span>مكتمل</span>
                             </div>
                           )}
                         </div>
-                        
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            {lesson.title}
-                          </h3>
-                          <div className="flex items-center gap-4 mt-1">
-                            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                              <ClockIcon className="w-4 h-4" />
-                              {formatDuration(lesson.duration)}
-                            </div>
-                            {lesson.is_completed && (
-                              <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                                مكتمل
-                              </span>
-                            )}
-                          </div>
-                        </div>
                       </div>
-                      
-                      <Link
-                        href={`/courses/${course.id}/lessons/${lesson.id}`}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                      >
-                        <PlayIcon className="w-4 h-4" />
-                        {lesson.is_completed ? 'إعادة المشاهدة' : 'مشاهدة'}
-                      </Link>
                     </div>
+                    
+                    <Link
+                      href={`/courses/${course.id}/lessons/${lesson.id}`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                    >
+                      <PlayIcon className="w-4 h-4" />
+                      {lesson.is_completed ? 'إعادة المشاهدة' : 'مشاهدة'}
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -322,6 +332,6 @@ export default function CoursePage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

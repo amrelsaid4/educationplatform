@@ -823,7 +823,7 @@ export async function addStudentAchievement(userId: string, achievementType: str
   const { data, error } = await supabase
     .from('student_achievements')
     .insert({
-      student_id: userId,
+      user_id: userId,
       achievement_type: achievementType,
       achievement_data: achievementData
     })
@@ -842,7 +842,7 @@ export async function getStudentAchievements(userId: string) {
   const { data, error } = await supabase
     .from('student_achievements')
     .select('*')
-    .eq('student_id', userId)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -1047,6 +1047,318 @@ export async function getCourseStats(courseId: string) {
     return { data: stats, error: null }
   } catch (error) {
     console.error('Error getting course stats:', error)
+    return { data: null, error }
+  }
+}
+
+// Get all users for admin dashboard
+export const getAllUsers = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error fetching all users:', error)
+    return { data: null, error }
+  }
+}
+
+// Assignment functions
+export async function getStudentAssignments(studentId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('assignments')
+      .select(`
+        *,
+        course:courses(id, title, teacher:users(name)),
+        lesson:lessons(id, title),
+        submission:assignment_submissions(id, submitted_at, score, status)
+      `)
+      .eq('submission.student_id', studentId)
+      .order('due_date', { ascending: true })
+
+    if (error) {
+      console.error('Error getting student assignments:', error)
+      return { data: null, error }
+    }
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error getting student assignments:', error)
+    return { data: null, error }
+  }
+}
+
+export async function getAvailableAssignments(studentId: string) {
+  try {
+    console.log('Getting assignments for student:', studentId)
+    
+    // First, get student enrollments
+    const { data: enrollments, error: enrollmentError } = await supabase
+      .from('course_enrollments')
+      .select('course_id')
+      .eq('student_id', studentId)
+
+    if (enrollmentError) {
+      console.error('Error getting enrollments:', enrollmentError)
+      return { data: null, error: enrollmentError }
+    }
+
+    console.log('Student enrollments:', enrollments)
+    const enrolledCourseIds = enrollments?.map(e => e.course_id) || []
+
+    if (enrolledCourseIds.length === 0) {
+      console.log('No enrollments found for student')
+      return { data: [], error: null }
+    }
+
+    // Get published assignments for enrolled courses
+    const { data, error } = await supabase
+      .from('assignments')
+      .select(`
+        *,
+        course:courses(id, title, teacher:users(name)),
+        lesson:lessons(id, title)
+      `)
+      .eq('is_published', true)
+      .in('course_id', enrolledCourseIds)
+      .order('due_date', { ascending: true })
+
+    if (error) {
+      console.error('Error getting available assignments:', error)
+      return { data: null, error }
+    }
+
+    console.log('Found assignments:', data)
+    return { data: data || [], error: null }
+  } catch (error) {
+    console.error('Error getting available assignments:', error)
+    return { data: null, error }
+  }
+}
+
+export async function submitAssignment(assignmentId: string, studentId: string, content: string, attachments?: string[]) {
+  try {
+    const { data, error } = await supabase
+      .from('assignment_submissions')
+      .upsert({
+        assignment_id: assignmentId,
+        student_id: studentId,
+        content,
+        attachments: attachments || [],
+        submitted_at: new Date().toISOString(),
+        status: 'submitted'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error submitting assignment:', error)
+      return { data: null, error }
+    }
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error submitting assignment:', error)
+    return { data: null, error }
+  }
+}
+
+// Exam functions
+export async function getStudentExams(studentId: string) {
+  try {
+    console.log('Getting exams for student:', studentId)
+    
+    // First, get student enrollments
+    const { data: enrollments, error: enrollmentError } = await supabase
+      .from('course_enrollments')
+      .select('course_id')
+      .eq('student_id', studentId)
+
+    if (enrollmentError) {
+      console.error('Error getting enrollments:', enrollmentError)
+      return { data: null, error: enrollmentError }
+    }
+
+    console.log('Student enrollments:', enrollments)
+    const enrolledCourseIds = enrollments?.map(e => e.course_id) || []
+
+    if (enrolledCourseIds.length === 0) {
+      console.log('No enrollments found for student')
+      return { data: [], error: null }
+    }
+
+    // Get published exams for enrolled courses
+    const { data, error } = await supabase
+      .from('exams')
+      .select(`
+        *,
+        course:courses(id, title, teacher:users(name)),
+        attempts:exam_attempts(id, started_at, completed_at, score, status)
+      `)
+      .eq('is_published', true)
+      .in('course_id', enrolledCourseIds)
+      .order('start_date', { ascending: true })
+
+    if (error) {
+      console.error('Error getting student exams:', error)
+      return { data: null, error }
+    }
+
+    console.log('Found exams:', data)
+    return { data: data || [], error: null }
+  } catch (error) {
+    console.error('Error getting student exams:', error)
+    return { data: null, error }
+  }
+}
+
+export async function startExamAttempt(examId: string, studentId: string) {
+  try {
+    // Check if student already has an attempt
+    const { data: existingAttempts } = await supabase
+      .from('exam_attempts')
+      .select('*')
+      .eq('exam_id', examId)
+      .eq('student_id', studentId)
+
+    const attemptNumber = (existingAttempts?.length || 0) + 1
+
+    const { data, error } = await supabase
+      .from('exam_attempts')
+      .insert({
+        exam_id: examId,
+        student_id: studentId,
+        started_at: new Date().toISOString(),
+        status: 'in_progress'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error starting exam attempt:', error)
+      return { data: null, error }
+    }
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error starting exam attempt:', error)
+    return { data: null, error }
+  }
+}
+
+export async function submitExamAttempt(attemptId: string, answers: any[], timeSpentMinutes: number) {
+  try {
+    const { data, error } = await supabase
+      .from('exam_attempts')
+      .update({
+        answers,
+        time_spent_minutes: timeSpentMinutes,
+        completed_at: new Date().toISOString(),
+        status: 'completed',
+        score: 0 // You can implement proper scoring logic here
+      })
+      .eq('id', attemptId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error submitting exam attempt:', error)
+      return { data: null, error }
+    }
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error submitting exam attempt:', error)
+    return { data: null, error }
+  }
+}
+
+export async function getExamQuestions(examId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('exam_questions')
+      .select('*')
+      .eq('exam_id', examId)
+      .order('order_index', { ascending: true })
+
+    if (error) {
+      console.error('Error getting exam questions:', error)
+      return { data: null, error }
+    }
+
+    return { data, error: null }
+  } catch (error) {
+    console.error('Error getting exam questions:', error)
+    return { data: null, error }
+  }
+}
+
+// Student dashboard statistics
+export async function getStudentDashboardStats(studentId: string) {
+  try {
+    // Get enrolled courses count
+    const { count: enrolledCourses } = await supabase
+      .from('course_enrollments')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', studentId)
+
+    // Get completed lessons count
+    const { count: completedLessons } = await supabase
+      .from('lesson_progress')
+      .select('*', { count: 'exact', head: true })
+      .eq('student_id', studentId)
+      .eq('is_completed', true)
+
+    // Get total learning hours (simplified calculation)
+    const { data: lessonProgress } = await supabase
+      .from('lesson_progress')
+      .select(`
+        watch_time_seconds,
+        lesson:lessons(duration_minutes)
+      `)
+      .eq('student_id', studentId)
+
+    const totalWatchTimeSeconds = lessonProgress?.reduce((sum, progress) => 
+      sum + (progress.watch_time_seconds || 0), 0) || 0
+    const totalHours = Math.round((totalWatchTimeSeconds / 3600) * 10) / 10
+
+    // Get achievements count
+    const { count: achievementsCount } = await supabase
+      .from('student_achievements')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', studentId)
+
+    // Get pending assignments count
+    const { data: assignments } = await supabase
+      .from('assignments')
+      .select(`
+        id,
+        due_date,
+        submission:assignment_submissions(id)
+      `)
+      .eq('is_published', true)
+      .is('submission.id', null)
+
+    const pendingAssignments = assignments?.filter(assignment => 
+      new Date(assignment.due_date) > new Date()
+    ).length || 0
+
+    const stats = {
+      enrolledCourses: enrolledCourses || 0,
+      completedLessons: completedLessons || 0,
+      totalHours,
+      achievementsCount: achievementsCount || 0,
+      pendingAssignments
+    }
+
+    return { data: stats, error: null }
+  } catch (error) {
+    console.error('Error getting student dashboard stats:', error)
     return { data: null, error }
   }
 }

@@ -10,7 +10,7 @@ import {
   ClockIcon,
   ChartBarIcon 
 } from "@heroicons/react/24/outline";
-import { getStudentEnrollments } from '../../../lib/course-utils'
+import { getStudentEnrollments, getStudentDashboardStats } from '../../../lib/course-utils'
 import { getCurrentUser } from '../../../lib/auth-utils'
 import { supabase } from '../../../lib/supabase'
 import type { CourseEnrollment } from '../../../lib/course-utils'
@@ -49,12 +49,8 @@ export default function StudentDashboard() {
       if (user) {
         const { user: userProfile } = await getCurrentUser(user.id)
         
-        // Get dashboard stats - placeholder for now
-        const stats = {
-          enrolledCourses: 0,
-          completedLessons: 0,
-          totalHoursLearned: 0
-        }
+        // Get dashboard stats
+        const { data: stats } = await getStudentDashboardStats(user.id)
         
         // Get enrolled courses
         const { data: enrollments } = await getStudentEnrollments(user.id)
@@ -73,9 +69,9 @@ export default function StudentDashboard() {
           name: userProfile?.name || '',
           avatar: userProfile?.avatar_url,
           stats: {
-            enrolledCourses: (stats as any)?.enrolledCourses || 0,
-            completedLessons: (stats as any)?.completedLessons || 0,
-            totalHoursLearned: Math.floor(((stats as any)?.completedLessons || 0) * 0.5), // Estimate 30 min per lesson
+            enrolledCourses: stats?.enrolledCourses || 0,
+            completedLessons: stats?.completedLessons || 0,
+            totalHoursLearned: stats?.totalHours || 0,
           },
           recentCourses,
           upcomingAssignments: [], // Will be implemented later

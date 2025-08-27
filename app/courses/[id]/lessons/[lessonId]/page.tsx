@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/AuthProvider'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
+import { getCurrentUser } from '@/lib/auth-utils'
 import { getLessonById, markLessonAsCompleted, getLessonProgress, saveStudentNote, getStudentNote } from '@/lib/course-utils'
 import { PlayIcon, CheckCircleIcon, ClockIcon, ArrowLeftIcon, ArrowRightIcon, BookmarkIcon } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleSolidIcon } from '@heroicons/react/24/solid'
@@ -38,11 +40,20 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true)
   const [savingNote, setSavingNote] = useState(false)
   const [videoProgress, setVideoProgress] = useState(0)
+  const [userData, setUserData] = useState({ name: '', avatar: '', role: 'student' as 'student' | 'admin' | 'teacher' })
 
   useEffect(() => {
     const loadLesson = async () => {
       if (params.lessonId && user?.id) {
         try {
+          // Load user data
+          const { user: userProfile } = await getCurrentUser(user.id)
+          setUserData({
+            name: userProfile?.name || '',
+            avatar: userProfile?.avatar_url || '',
+            role: (userProfile?.role || 'student') as 'student' | 'admin' | 'teacher'
+          })
+
           const { data: lessonData } = await getLessonById(params.lessonId as string)
           setLesson(lessonData)
           
@@ -116,33 +127,40 @@ export default function LessonPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-            <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg mb-6"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-8"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
-                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg mb-6"></div>
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  ))}
+                </div>
               </div>
               <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
             </div>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
   if (!lesson) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">الدرس غير موجود</h1>
-          <Link href="/courses" className="text-blue-600 hover:text-blue-500">
-            العودة إلى الكورسات
-          </Link>
+      <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">الدرس غير موجود</h1>
+            <Link href="/courses" className="text-blue-600 hover:text-blue-500">
+              العودة إلى الكورسات
+            </Link>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
@@ -150,63 +168,54 @@ export default function LessonPage() {
   const previousLesson = getPreviousLesson()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Lesson Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4 mb-4">
             <Link
               href={`/courses/${lesson.course.id}`}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-500 transition-colors"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-500"
             >
-              <ArrowLeftIcon className="w-4 h-4" />
-              العودة إلى الكورس
+              <ArrowLeftIcon className="w-5 h-5" />
+              العودة للكورس
             </Link>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                الدرس {lesson.order_index} من {lesson.course.lessons.length}
-              </span>
-              {isCompleted && (
-                <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                  <CheckCircleSolidIcon className="w-5 h-5" />
-                  <span className="text-sm font-medium">مكتمل</span>
-                </div>
-              )}
-            </div>
+            <span className="text-gray-400">•</span>
+            <span className="text-gray-600 dark:text-gray-400">{lesson.course.title}</span>
           </div>
           
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             {lesson.title}
           </h1>
           
-          <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-            {lesson.description}
-          </p>
-
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2">
               <ClockIcon className="w-4 h-4" />
-              {formatDuration(lesson.duration)}
+              <span>{formatDuration(lesson.duration)}</span>
             </div>
-            <span>•</span>
-            <span>الكورس: {lesson.course.title}</span>
+            {isCompleted && (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircleSolidIcon className="w-4 h-4" />
+                <span>مكتمل</span>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Video Player */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
-              <div className="relative aspect-video bg-black">
-                {lesson.video_url ? (
+          {/* Lesson Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Video Player */}
+            {lesson.video_url && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+                <div className="relative aspect-video">
                   <ReactPlayer
                     url={lesson.video_url}
                     width="100%"
                     height="100%"
                     controls
-                    onProgress={({ played }) => setVideoProgress(played)}
                     onEnded={handleVideoEnd}
+                    onProgress={(state) => setVideoProgress(state.played * 100)}
                     config={{
                       file: {
                         attributes: {
@@ -215,68 +224,63 @@ export default function LessonPage() {
                       }
                     }}
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <PlayIcon className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg">لا يوجد فيديو لهذا الدرس</p>
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
-              
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {lesson.title}
-                  </h2>
-                  
+            )}
+
+            {/* Lesson Description */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                وصف الدرس
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                {lesson.description}
+              </p>
+            </div>
+
+            {/* Lesson Actions */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
                   {user?.role === 'student' && (
                     <button
                       onClick={handleMarkAsCompleted}
                       disabled={isCompleted}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                         isCompleted
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 cursor-not-allowed'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                       }`}
                     >
                       {isCompleted ? (
                         <>
-                          <CheckCircleSolidIcon className="w-5 h-5" />
+                          <CheckCircleSolidIcon className="w-4 h-4" />
                           مكتمل
                         </>
                       ) : (
                         <>
-                          <CheckCircleIcon className="w-5 h-5" />
-                          إكمال الدرس
+                          <CheckCircleIcon className="w-4 h-4" />
+                          تحديد كمكتمل
                         </>
                       )}
                     </button>
                   )}
                 </div>
-                
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {lesson.description}
-                </p>
 
-                {/* Navigation */}
-                <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
-                  {previousLesson ? (
+                <div className="flex items-center gap-2">
+                  {getPreviousLesson() && (
                     <Link
-                      href={`/courses/${lesson.course.id}/lessons/${previousLesson.id}`}
-                      className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                      href={`/courses/${lesson.course.id}/lessons/${getPreviousLesson()?.id}`}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
                     >
                       <ArrowLeftIcon className="w-4 h-4" />
                       الدرس السابق
                     </Link>
-                  ) : (
-                    <div></div>
                   )}
                   
-                  {nextLesson ? (
+                  {getNextLesson() ? (
                     <Link
-                      href={`/courses/${lesson.course.id}/lessons/${nextLesson.id}`}
+                      href={`/courses/${lesson.course.id}/lessons/${getNextLesson()?.id}`}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                     >
                       الدرس التالي
@@ -375,6 +379,6 @@ export default function LessonPage() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }

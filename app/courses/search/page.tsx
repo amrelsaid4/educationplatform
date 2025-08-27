@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
+import { getCurrentUser } from '@/lib/auth-utils'
 import { searchCourses, getCourseCategories } from '@/lib/course-utils'
 import { MagnifyingGlassIcon, FunnelIcon, StarIcon, ClockIcon, UserIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -39,8 +41,10 @@ export default function SearchPage() {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '')
   const [selectedLevel, setSelectedLevel] = useState(searchParams.get('level') || '')
   const [showFilters, setShowFilters] = useState(false)
+  const [userData, setUserData] = useState({ name: '', avatar: '', role: 'student' })
 
   useEffect(() => {
+    loadUserData()
     loadCategories()
   }, [])
 
@@ -54,6 +58,22 @@ export default function SearchPage() {
       setCategories(data || [])
     } catch (error) {
       console.error('Error loading categories:', error)
+    }
+  }
+
+  const loadUserData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { user: userProfile } = await getCurrentUser(user.id)
+        setUserData({
+          name: userProfile?.name || '',
+          avatar: userProfile?.avatar_url || '',
+          role: userProfile?.role || 'student'
+        })
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error)
     }
   }
 
@@ -108,7 +128,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <DashboardLayout userRole={userData.role} userName={userData.name} userAvatar={userData.avatar}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -204,7 +224,7 @@ export default function SearchPage() {
         </div>
 
         {/* Results */}
-        <div className="space-y-6">
+        <div>
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
@@ -304,6 +324,6 @@ export default function SearchPage() {
           )}
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   )
 }
