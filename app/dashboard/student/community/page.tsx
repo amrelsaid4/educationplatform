@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import DashboardLayout from '@/components/layouts/DashboardLayout'
 import { getCurrentUser } from '@/lib/auth-utils'
+import { supabase } from '@/lib/supabase'
 import { 
   ChatBubbleLeftRightIcon,
   PlusIcon,
@@ -46,13 +47,21 @@ export default function StudentCommunityPage() {
     courseId: ''
   })
   const [userData, setUserData] = useState({ name: '', avatar: '' })
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
       loadUserData()
-      loadDiscussions()
+      loadEnrolledCourses()
     }
   }, [user])
+
+  useEffect(() => {
+    if (enrolledCourses.length > 0) {
+      loadDiscussions()
+    }
+  }, [enrolledCourses])
 
   const loadUserData = async () => {
     try {
@@ -66,52 +75,90 @@ export default function StudentCommunityPage() {
     }
   }
 
+  const loadEnrolledCourses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('course_enrollments')
+        .select(`
+          course_id,
+          courses (
+            id,
+            title
+          )
+        `)
+        .eq('student_id', user!.id)
+        .eq('status', 'enrolled')
+
+      if (error) {
+        console.error('Error loading enrolled courses:', error)
+        return
+      }
+
+      setEnrolledCourses(data || [])
+    } catch (error) {
+      console.error('Error loading enrolled courses:', error)
+    }
+  }
+
   const loadDiscussions = async () => {
     try {
-      // In a real app, you would fetch discussions from your API
-      // For now, we'll simulate the data
-      const mockDiscussions: Discussion[] = [
-        {
-          id: '1',
-          title: 'سؤال حول الدرس الثالث في البرمجة',
-          content: 'أحتاج مساعدة في فهم مفهوم الـ loops في JavaScript. هل يمكن لأحد شرحه لي؟',
-          author: {
-            id: '1',
-            name: 'أحمد محمد',
-            avatar_url: undefined
-          },
-          course: {
-            id: '1',
-            title: 'مقدمة في البرمجة'
-          },
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          replies_count: 3,
-          views_count: 15,
-          likes_count: 2,
-          is_liked: false
-        },
-        {
-          id: '2',
-          title: 'مشاركة مشروعي النهائي',
-          content: 'أريد مشاركة مشروعي النهائي معكم. هل يمكنكم إعطائي نصائح للتحسين؟',
-          author: {
-            id: '2',
-            name: 'فاطمة علي',
-            avatar_url: undefined
-          },
-          course: {
-            id: '2',
-            title: 'تطوير الويب'
-          },
-          created_at: new Date(Date.now() - 7200000).toISOString(),
-          replies_count: 5,
-          views_count: 28,
-          likes_count: 8,
-          is_liked: true
-        }
-      ]
+      const courseIds = enrolledCourses.map(enrollment => enrollment.course_id)
+      
+      if (courseIds.length === 0) {
+        setDiscussions([])
+        setLoading(false)
+        return
+      }
 
-      setDiscussions(mockDiscussions)
+      // Get discussions with author and course information
+      // Fixed: Use specific column names to avoid relationship conflicts
+      const { data, error } = await supabase
+        .from('discussions')
+        .select(`
+          id,
+          title,
+          content,
+          created_at,
+          views_count,
+          likes_count,
+          course_id,
+          author_id,
+          author:users!discussions_author_id_fkey(id, name, avatar_url),
+          course:courses(id, title)
+        `)
+        .in('course_id', courseIds)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error loading discussions:', error)
+        return
+      }
+
+      // Get like status for current user
+      const discussionsWithLikes = await Promise.all(
+        (data || []).map(async (discussion) => {
+          const { data: likeData } = await supabase
+            .from('discussion_likes')
+            .select('id')
+            .eq('discussion_id', discussion.id)
+            .eq('user_id', user!.id)
+            .single()
+
+          // Get replies count
+          const { count: repliesCount } = await supabase
+            .from('discussion_replies')
+            .select('*', { count: 'exact', head: true })
+            .eq('discussion_id', discussion.id)
+
+          return {
+            ...discussion,
+            replies_count: repliesCount || 0,
+            is_liked: !!likeData
+          }
+        })
+      )
+
+      setDiscussions(discussionsWithLikes)
     } catch (error) {
       console.error('Error loading discussions:', error)
     } finally {
@@ -120,49 +167,105 @@ export default function StudentCommunityPage() {
   }
 
   const handleCreateDiscussion = async () => {
-    if (!newDiscussion.title.trim() || !newDiscussion.content.trim()) return
+    if (!newDiscussion.title.trim() || !newDiscussion.content.trim() || !newDiscussion.courseId) {
+      alert('يرجى ملء جميع الحقول المطلوبة')
+      return
+    }
 
+    setSubmitting(true)
     try {
-      // In a real app, you would submit the discussion to your API
-      const discussion: Discussion = {
-        id: Date.now().toString(),
-        title: newDiscussion.title,
-        content: newDiscussion.content,
-        author: {
-          id: user!.id,
-          name: user!.name || 'مستخدم',
-          avatar_url: user!.avatar_url
-        },
-        course: {
-          id: newDiscussion.courseId || '1',
-          title: 'مقدمة في البرمجة'
-        },
-        created_at: new Date().toISOString(),
+      const { data, error } = await supabase
+        .from('discussions')
+        .insert({
+          title: newDiscussion.title,
+          content: newDiscussion.content,
+          course_id: newDiscussion.courseId,
+          author_id: user!.id
+        })
+        .select(`
+          id,
+          title,
+          content,
+          created_at,
+          views_count,
+          likes_count,
+          course_id,
+          author_id,
+          author:users!discussions_author_id_fkey(id, name, avatar_url),
+          course:courses(id, title)
+        `)
+        .single()
+
+      if (error) {
+        console.error('Error creating discussion:', error)
+        alert('فشل في إنشاء المناقشة')
+        return
+      }
+
+      const newDiscussionWithLikes = {
+        ...data,
         replies_count: 0,
-        views_count: 0,
-        likes_count: 0,
         is_liked: false
       }
 
-      setDiscussions(prev => [discussion, ...prev])
+      setDiscussions(prev => [newDiscussionWithLikes, ...prev])
       setShowNewDiscussion(false)
       setNewDiscussion({ title: '', content: '', courseId: '' })
+      alert('تم إنشاء المناقشة بنجاح')
     } catch (error) {
       console.error('Error creating discussion:', error)
+      alert('فشل في إنشاء المناقشة')
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const handleLikeDiscussion = (discussionId: string) => {
-    setDiscussions(prev => prev.map(discussion => {
-      if (discussion.id === discussionId) {
-        return {
-          ...discussion,
-          likes_count: discussion.is_liked ? discussion.likes_count - 1 : discussion.likes_count + 1,
-          is_liked: !discussion.is_liked
+  const handleLikeDiscussion = async (discussionId: string) => {
+    try {
+      const discussion = discussions.find(d => d.id === discussionId)
+      if (!discussion) return
+
+      if (discussion.is_liked) {
+        // Unlike
+        const { error } = await supabase
+          .from('discussion_likes')
+          .delete()
+          .eq('discussion_id', discussionId)
+          .eq('user_id', user!.id)
+
+        if (error) {
+          console.error('Error unliking discussion:', error)
+          return
         }
+
+        setDiscussions(prev => prev.map(d => 
+          d.id === discussionId 
+            ? { ...d, likes_count: d.likes_count - 1, is_liked: false }
+            : d
+        ))
+      } else {
+        // Like
+        const { error } = await supabase
+          .from('discussion_likes')
+          .insert({
+            discussion_id: discussionId,
+            user_id: user!.id
+          })
+
+        if (error) {
+          console.error('Error liking discussion:', error)
+          return
+        }
+
+        setDiscussions(prev => prev.map(d => 
+          d.id === discussionId 
+            ? { ...d, likes_count: d.likes_count + 1, is_liked: true }
+            : d
+        ))
       }
-      return discussion
-    }))
+    } catch (error) {
+      console.error('Error toggling like:', error)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -240,8 +343,21 @@ export default function StudentCommunityPage() {
               لا توجد مناقشات
             </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {searchTerm ? 'لا توجد نتائج للبحث' : 'ابدأ أول مناقشة في المجتمع'}
+              {enrolledCourses.length === 0 
+                ? 'يجب عليك التسجيل في دورات أولاً لرؤية المناقشات'
+                : searchTerm 
+                  ? 'لا توجد نتائج للبحث' 
+                  : 'ابدأ أول مناقشة في المجتمع'
+              }
             </p>
+            {enrolledCourses.length === 0 && (
+              <a
+                href="/dashboard/student/courses"
+                className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                استكشف الدورات
+              </a>
+            )}
           </div>
         ) : (
           <div className="space-y-6">
@@ -361,17 +477,20 @@ export default function StudentCommunityPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      الكورس (اختياري)
+                      الكورس *
                     </label>
                     <select
                       value={newDiscussion.courseId}
                       onChange={(e) => setNewDiscussion(prev => ({ ...prev, courseId: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                      required
                     >
                       <option value="">اختر الكورس</option>
-                      <option value="1">مقدمة في البرمجة</option>
-                      <option value="2">تطوير الويب</option>
-                      <option value="3">قواعد البيانات</option>
+                      {enrolledCourses.map(enrollment => (
+                        <option key={enrollment.course_id} value={enrollment.course_id}>
+                          {enrollment.courses.title}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -379,10 +498,10 @@ export default function StudentCommunityPage() {
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={handleCreateDiscussion}
-                    disabled={!newDiscussion.title.trim() || !newDiscussion.content.trim()}
+                    disabled={submitting || !newDiscussion.title.trim() || !newDiscussion.content.trim() || !newDiscussion.courseId}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                   >
-                    نشر المناقشة
+                    {submitting ? 'جاري النشر...' : 'نشر المناقشة'}
                   </button>
                   <button
                     onClick={() => setShowNewDiscussion(false)}
