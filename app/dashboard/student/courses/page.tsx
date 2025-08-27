@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/AuthProvider'
 import DashboardLayout from '@/components/layouts/DashboardLayout'
 import { getPublishedCourses, getStudentEnrollments, enrollInCourse } from '@/lib/course-utils'
@@ -50,6 +51,7 @@ interface Course {
 }
 
 export default function StudentCoursesPage() {
+  const router = useRouter()
   const { user } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [enrollments, setEnrollments] = useState<any[]>([])
@@ -106,7 +108,7 @@ export default function StudentCoursesPage() {
             id: enrollment.id,
             status: enrollment.status,
             enrolled_at: enrollment.enrolled_at,
-            progress_percentage: enrollment.progress_percentage || 0
+            progress_percentage: enrollment.progress || 0
           } : undefined
         }
       })
@@ -133,7 +135,12 @@ export default function StudentCoursesPage() {
 
       setShowEnrollDialog(false)
       setSelectedCourse(null)
-      loadData() // Reload to update enrollment status
+      
+      // Use setTimeout to avoid setState during render
+      setTimeout(() => {
+        loadData() // Reload to update enrollment status
+      }, 0)
+      
       alert('تم التسجيل في الكورس بنجاح')
     } catch (error) {
       console.error('Error enrolling in course:', error)
@@ -278,7 +285,7 @@ export default function StudentCoursesPage() {
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <AcademicCapIcon className="w-4 h-4" />
-                        <span>{course.teacher.name}</span>
+                        <span>{course.teacher?.name || 'غير محدد'}</span>
                       </div>
 
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -325,7 +332,7 @@ export default function StudentCoursesPage() {
                       <div className="flex items-center gap-2">
                         {course.enrollment ? (
                           <button
-                            onClick={() => window.location.href = `/dashboard/student/courses/${course.id}`}
+                            onClick={() => router.push(`/dashboard/student/courses/${course.id}`)}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
                           >
                             <PlayIcon className="w-4 h-4" />
