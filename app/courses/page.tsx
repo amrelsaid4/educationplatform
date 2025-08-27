@@ -260,7 +260,7 @@ export default function CoursesPage() {
                     
                     {isEnrolled(course.id) ? (
                       <button
-                        onClick={() => window.location.href = `/courses/${course.id}`}
+                        onClick={() => window.location.href = `/dashboard/student/courses/${course.id}`}
                         className="flex items-center bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                       >
                         <PlayIcon className="h-4 w-4 mr-2" />
