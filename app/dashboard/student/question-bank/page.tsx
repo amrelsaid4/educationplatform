@@ -98,11 +98,29 @@ export default function StudentQuestionBankPage() {
 
       if (!enrollments || enrollments.length === 0) {
         setQuestions([])
+        setCategories([])
+        setTeachers([])
         setLoading(false)
         return
       }
 
       const courseIds = enrollments.map(e => e.course_id)
+
+      // Get teacher IDs from enrolled courses
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('teacher_id')
+        .in('id', courseIds)
+
+      if (!coursesData || coursesData.length === 0) {
+        setQuestions([])
+        setCategories([])
+        setTeachers([])
+        setLoading(false)
+        return
+      }
+
+      const teacherIds = coursesData.map(c => c.teacher_id)
 
       // Get questions from enrolled courses
       const { data: questionsData, error: questionsError } = await supabase
@@ -122,12 +140,7 @@ export default function StudentQuestionBankPage() {
           teacher:users!question_bank_teacher_id_fkey(id, name),
           category:question_bank_categories(id, name, color)
         `)
-        .in('teacher_id', 
-          supabase
-            .from('courses')
-            .select('teacher_id')
-            .in('id', courseIds)
-        )
+        .in('teacher_id', teacherIds)
         .eq('is_public', true)
         .order('created_at', { ascending: false })
 
@@ -136,18 +149,20 @@ export default function StudentQuestionBankPage() {
         return
       }
 
-      setQuestions(questionsData || [])
+      // Transform the data to match the interface
+      const transformedQuestions = (questionsData || []).map(q => ({
+        ...q,
+        teacher: Array.isArray(q.teacher) ? q.teacher[0] : q.teacher,
+        category: Array.isArray(q.category) ? q.category[0] : q.category
+      }))
+
+      setQuestions(transformedQuestions)
 
       // Get categories
       const { data: categoriesData } = await supabase
         .from('question_bank_categories')
         .select('*')
-        .in('teacher_id', 
-          supabase
-            .from('courses')
-            .select('teacher_id')
-            .in('id', courseIds)
-        )
+        .in('teacher_id', teacherIds)
 
       setCategories(categoriesData || [])
 
@@ -156,12 +171,7 @@ export default function StudentQuestionBankPage() {
         .from('users')
         .select('id, name')
         .eq('role', 'teacher')
-        .in('id', 
-          supabase
-            .from('courses')
-            .select('teacher_id')
-            .in('id', courseIds)
-        )
+        .in('id', teacherIds)
 
       setTeachers(teachersData || [])
     } catch (error) {
@@ -265,9 +275,9 @@ export default function StudentQuestionBankPage() {
               <BookOpenIcon className="w-8 h-8 text-blue-600" />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">الدورات المسجلة</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {questions.length > 0 ? new Set(questions.map(q => q.teacher.id)).size : 0}
-                </p>
+                                 <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                   {questions && questions.length > 0 ? new Set(questions.map(q => q.teacher.id)).size : 0}
+                 </p>
               </div>
             </div>
           </div>
