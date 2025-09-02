@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase } from './supabase-config'
 
 export interface AuthUser {
   id: string
@@ -42,7 +42,7 @@ export const signUp = async (userData: {
           role: userData.role,
           phone: userData.phone
         },
-        emailRedirectTo: null // Disable default email confirmation
+        emailRedirectTo: undefined // Disable default email confirmation
       }
     })
 
@@ -127,6 +127,8 @@ export const signUp = async (userData: {
 
 export const signIn = async (email: string, password: string) => {
   try {
+    console.log('Attempting to sign in with email:', email)
+    
     // Use Supabase Auth signIn
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -136,13 +138,21 @@ export const signIn = async (email: string, password: string) => {
     if (error) {
       console.error('Supabase Auth error:', error)
       
-      // For development: Skip email confirmation requirement
+      // Handle specific error messages in Arabic
+      if (error.message?.includes('Invalid login credentials')) {
+        throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة')
+      }
+      
       if (error.message?.includes('Email not confirmed')) {
         console.log('Development mode: Skipping email confirmation requirement')
         // Continue with login even if email is not confirmed
       } else {
         throw new Error(error.message || 'البريد الإلكتروني أو كلمة المرور غير صحيحة')
       }
+    }
+
+    if (!data.user) {
+      throw new Error('فشل في تسجيل الدخول - لم يتم العثور على المستخدم')
     }
 
     if (data.user) {
@@ -155,16 +165,38 @@ export const signIn = async (email: string, password: string) => {
 
       if (profileError) {
         console.error('Profile fetch error:', profileError)
+        // If user profile doesn't exist, create it from auth data
+        if (profileError.code === 'PGRST116') {
+          console.log('Creating user profile from auth data')
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: data.user.id,
+              name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'مستخدم جديد',
+              email: data.user.email || '',
+              role: data.user.user_metadata?.role || 'student',
+              is_active: true,
+              email_verified: data.user.email_confirmed_at ? true : false,
+              password_hash: 'supabase_auth_user'
+            })
+          
+          if (!insertError) {
+            console.log('User profile created successfully')
+          } else {
+            console.error('Error creating user profile:', insertError)
+          }
+        }
       }
 
       // Return user data in expected format
       const user: AuthUser = {
         id: data.user.id,
-        name: userProfile?.name || data.user.user_metadata?.name || '',
+        name: userProfile?.name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'مستخدم جديد',
         email: data.user.email || '',
         role: userProfile?.role || data.user.user_metadata?.role || 'student'
       }
 
+      console.log('User authenticated successfully:', user)
       return { user, error: null }
     }
 

@@ -1,5 +1,5 @@
 import { signIn, signUp, AuthUser, signOut } from './auth-utils'
-import { supabase } from './supabase'
+import { supabase } from './supabase-config'
 
 export interface Session {
   user: AuthUser
@@ -76,19 +76,30 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 // Authentication functions
 export const loginUser = async (email: string, password: string) => {
   try {
+    console.log('loginUser called with email:', email);
     const { user, error } = await signIn(email, password)
     
     if (error) {
+      console.error('SignIn error in loginUser:', error);
       throw error
     }
     
     if (user) {
+      console.log('User signed in successfully:', user);
+      
+      // Wait a bit for session to be established
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const session = await getSession()
+      console.log('Session retrieved:', session);
+      
       return { success: true, user, session }
     }
     
+    console.error('No user returned from signIn');
     throw new Error('فشل في تسجيل الدخول')
   } catch (error) {
+    console.error('loginUser error:', error);
     return { success: false, error }
   }
 }

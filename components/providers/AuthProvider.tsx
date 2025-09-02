@@ -8,6 +8,7 @@ interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  updateUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,14 +21,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log('AuthProvider: Initializing auth...');
         const session = await getSession();
+        console.log('AuthProvider: Session retrieved:', session);
         if (session) {
           setUser(session.user);
+          console.log('AuthProvider: User set:', session.user);
         }
       } catch (error) {
         console.error('Error getting initial session:', error);
       } finally {
         setLoading(false);
+        console.log('AuthProvider: Loading completed');
       }
     };
 
@@ -62,10 +67,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUser = (newUser: AuthUser) => {
+    console.log('AuthProvider: Updating user:', newUser);
+    setUser(newUser);
+    setLoading(false); // Ensure loading is set to false
+  };
+
   const value = {
     user,
     loading,
     signOut,
+    updateUser,
   };
 
   return (

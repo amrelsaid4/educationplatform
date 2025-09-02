@@ -3,7 +3,6 @@
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { AuthUser } from '@/lib/auth-utils';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
