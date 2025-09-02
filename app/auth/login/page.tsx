@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { loginUser } from "@/lib/simple-auth";
+import { useAuth } from "@/components/providers/AuthProvider";
 import Image from "next/image";
 
 export default function LoginPage() {
+  const { updateUser } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,31 +26,64 @@ export default function LoginPage() {
     setError("");
     
     try {
+      console.log('Attempting login with:', formData.email);
       const result = await loginUser(formData.email, formData.password);
+      
+      console.log('Login result:', result);
 
       if (!result.success) {
-        setError(result.error?.message || "فشل في تسجيل الدخول");
+        console.error('Login failed:', result.error);
+        setError(result.error?.toString() || "فشل في تسجيل الدخول");
         setIsLoading(false);
         return;
       }
 
       if (result.user) {
+        console.log('User authenticated successfully:', result.user);
+        console.log('User role:', result.user.role);
+        
+        // Update AuthProvider with user data
+        updateUser(result.user);
+        
+        // Wait a bit for AuthProvider to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Redirect based on user role
+        let redirectPath = "/dashboard/student"; // default
+        
         switch (result.user.role) {
           case 'admin':
-            router.push("/dashboard/admin");
+            redirectPath = "/dashboard/admin";
             break;
           case 'teacher':
-            router.push("/dashboard/teacher");
+            redirectPath = "/dashboard/teacher";
             break;
           case 'student':
-            router.push("/dashboard/student");
+            redirectPath = "/dashboard/student";
             break;
           default:
-            router.push("/dashboard/student");
+            redirectPath = "/dashboard/student";
         }
+        
+        console.log('Redirecting to:', redirectPath);
+        
+        // Use router.push with force refresh
+        console.log('Using router.push with force refresh');
+        router.push(redirectPath);
+        
+        // Force a small delay then refresh if needed
+        setTimeout(() => {
+          if (window.location.pathname !== redirectPath) {
+            console.log('Force refreshing to:', redirectPath);
+            window.location.href = redirectPath;
+          }
+        }, 100);
+      } else {
+        console.error('No user data in result');
+        setError("فشل في تسجيل الدخول - لا توجد بيانات مستخدم");
       }
     } catch (error) {
+      console.error('Login error:', error);
       setError("حدث خطأ. يرجى المحاولة مرة أخرى.");
     } finally {
       setIsLoading(false);
@@ -76,6 +111,7 @@ export default function LoginPage() {
             src="/assets/images/login.jpeg"
             alt="Login"
             fill
+            sizes="(max-width: 1024px) 0vw, 50vw"
             className="object-cover scale-105"
             priority
           />
