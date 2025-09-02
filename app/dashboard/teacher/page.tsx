@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
+import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 import {
   BookOpenIcon,
   UserGroupIcon,
@@ -12,14 +13,13 @@ import {
   ArrowTrendingUpIcon
 } from "@heroicons/react/24/outline";
 import { getCoursesByTeacher, getDashboardStats } from '../../../lib/course-utils'
-import { getCurrentUser } from '../../../lib/auth-utils'
-import { supabase } from '../../../lib/supabase'
+import { useAuth } from '../../../components/providers/AuthProvider'
 import Link from 'next/link'
 
 export default function TeacherDashboard() {
   const [teacherData, setTeacherData] = useState({
     name: "",
-    avatar: undefined,
+    avatar: undefined as string | undefined,
     stats: {
       totalCourses: 0,
       totalStudents: 0,
@@ -31,50 +31,46 @@ export default function TeacherDashboard() {
     pendingReviews: [] as any[]
   })
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    if (user?.id) {
+      loadDashboardData(user.id)
+    } else {
+      setLoading(false)
+    }
+  }, [user?.id])
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (userId: string) => {
     try {
       setLoading(true)
+      // Get dashboard stats
+      const { data: stats } = await getDashboardStats('teacher', userId)
+      // Get teacher courses
+      const { data: courses } = await getCoursesByTeacher(userId)
+      // Transform courses data
+      const transformedCourses = courses?.slice(0, 3).map(course => ({
+        id: course.id,
+        title: course.title,
+        students: course.enrollment_count || 0,
+        progress: 75,
+        status: course.status === 'published' ? 'منشور' : course.status === 'draft' ? 'مسودة' : 'مؤرشف',
+        revenue: course.is_free ? 0 : (course.price || 0) * (course.enrollment_count || 0),
+      })) || []
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { user: userProfile } = await getCurrentUser(user.id)
-
-        // Get dashboard stats
-        const { data: stats } = await getDashboardStats('teacher', user.id)
-
-        // Get teacher courses
-        const { data: courses } = await getCoursesByTeacher(user.id)
-
-        // Transform courses data
-        const transformedCourses = courses?.slice(0, 3).map(course => ({
-          id: course.id,
-          title: course.title,
-          students: course.enrollment_count || 0,
-          progress: 75, // Placeholder
-          status: course.status === 'published' ? 'منشور' : course.status === 'draft' ? 'مسودة' : 'مؤرشف',
-          revenue: course.is_free ? 0 : (course.price || 0) * (course.enrollment_count || 0),
-        })) || []
-
-        setTeacherData({
-          name: userProfile?.name || '',
-          avatar: userProfile?.avatar_url,
-          stats: {
-            totalCourses: (stats as any)?.totalCourses || 0,
-            totalStudents: (stats as any)?.totalStudents || 0,
-            pendingAssignments: 0, // Will be implemented later
-            monthlyRevenue: (stats as any)?.monthlyRevenue || 0,
-          },
-          courses: transformedCourses,
-          recentActivity: [], // Will be implemented later
-          pendingReviews: [] // Will be implemented later
-        })
-      }
+      setTeacherData({
+        name: user?.name || '',
+        avatar: user?.avatar_url,
+        stats: {
+          totalCourses: (stats as any)?.totalCourses || 0,
+          totalStudents: (stats as any)?.totalStudents || 0,
+          pendingAssignments: 0,
+          monthlyRevenue: (stats as any)?.monthlyRevenue || 0,
+        },
+        courses: transformedCourses,
+        recentActivity: [],
+        pendingReviews: []
+      })
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {
@@ -84,25 +80,28 @@ export default function TeacherDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="teacher" userName={teacherData.name} userAvatar={teacherData.avatar}>
-        <div className="py-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
-                ))}
+      <ProtectedRoute allowedRoles={['teacher']}>
+        <DashboardLayout userRole="teacher" userName={teacherData.name} userAvatar={teacherData.avatar}>
+          <div className="py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-2xl"></div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </ProtectedRoute>
     )
   }
 
   return (
-    <DashboardLayout userRole="teacher" userName={teacherData.name} userAvatar={teacherData.avatar}>
+    <ProtectedRoute allowedRoles={['teacher']}>
+      <DashboardLayout userRole="teacher" userName={teacherData.name} userAvatar={teacherData.avatar}>
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           {/* Header */}
@@ -316,6 +315,7 @@ export default function TeacherDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

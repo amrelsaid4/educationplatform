@@ -4,14 +4,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { createCourse } from '../../../../../lib/course-utils'
-import { getCurrentUser } from '../../../../../lib/auth-utils'
 import DashboardLayout from '../../../../../components/layouts/DashboardLayout'
-import { supabase } from '../../../../../lib/supabase'
+import { useAuth } from '../../../../../components/providers/AuthProvider'
 
 export default function CreateCoursePage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const { user } = useAuth()
   
   const [formData, setFormData] = useState({
     title: '',
@@ -24,15 +24,10 @@ export default function CreateCoursePage() {
   })
 
   useState(() => {
-    // Get current user
-    const loadUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { user: userProfile } = await getCurrentUser(user.id)
-        setCurrentUser(userProfile)
-      }
+    // Initialize current user from AuthProvider
+    if (user) {
+      setCurrentUser({ id: user.id, name: user.name, avatar_url: user.avatar_url })
     }
-    loadUser()
   })
 
   const handleSubmit = async (e: React.FormEvent) => {

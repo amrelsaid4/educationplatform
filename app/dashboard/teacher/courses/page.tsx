@@ -3,11 +3,10 @@
 import { useState, useEffect } from 'react'
 import { PlusIcon, PencilIcon, EyeIcon, TrashIcon, BookOpenIcon } from '@heroicons/react/24/outline'
 import { getCoursesByTeacher, updateCourse } from '../../../../lib/course-utils'
-import { getCurrentUser } from '../../../../lib/auth-utils'
 import type { Course } from '../../../../lib/course-utils'
 import DashboardLayout from '../../../../components/layouts/DashboardLayout'
-import { supabase } from '../../../../lib/supabase'
 import Link from 'next/link'
+import { useAuth } from '../../../../components/providers/AuthProvider'
 
 export default function TeacherCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])
@@ -15,25 +14,26 @@ export default function TeacherCoursesPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
+  const { user } = useAuth()
 
   useEffect(() => {
-    loadData()
-  }, [])
+    // Load courses whenever authenticated user changes
+    if (user?.id) {
+      loadData(user.id)
+    } else {
+      setCourses([])
+      setLoading(false)
+    }
+  }, [user?.id])
 
-  const loadData = async () => {
+  const loadData = async (userId: string) => {
     try {
       setLoading(true)
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { user: userProfile } = await getCurrentUser(user.id)
-        setCurrentUser(userProfile)
-        
-        // Get teacher courses
-        const { data } = await getCoursesByTeacher(user.id)
-        setCourses(data || [])
-      }
+      // Get teacher courses using the id from AuthProvider
+      // Note: session managed by simple-auth; do not rely on supabase.auth here
+      const { data } = await getCoursesByTeacher(userId)
+      setCourses(data || [])
+      setCurrentUser({ id: userId, name: user?.name, avatar_url: user?.avatar_url })
     } catch (error) {
       console.error('Error loading data:', error)
     } finally {
@@ -164,11 +164,11 @@ export default function TeacherCoursesPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {courses.map((course) => (
-                <div key={course.id} className="card overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <div key={course.id} className="card overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl">
                   {/* Course Thumbnail */}
-                  <div className="h-48 bg-gradient-to-br from-[#49BBBD] to-[#06b6d4] flex items-center justify-center">
+                  <div className="h-44 bg-gradient-to-br from-[#49BBBD] to-[#06b6d4] flex items-center justify-center">
                     {course.thumbnail_url ? (
                       <img 
                         src={course.thumbnail_url} 
@@ -182,7 +182,7 @@ export default function TeacherCoursesPage() {
 
                   {/* Course Content */}
                   <div className="p-6">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-4">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(course.status)}`}>
                         {getStatusText(course.status)}
                       </span>
@@ -195,37 +195,37 @@ export default function TeacherCoursesPage() {
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 text-center">
                       {course.title}
                     </h3>
 
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-5 line-clamp-3 text-center">
                       {course.description}
                     </p>
 
                     {/* Course Stats */}
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
-                      <div>
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-5">
+                      <div className="text-center flex-1">
                         <span className="font-medium">{course.enrollment_count}</span> طالب
                       </div>
-                      <div>
+                      <div className="text-center flex-1">
                         <span className="font-medium">{course.total_lessons}</span> درس
                       </div>
-                      <div>
+                      <div className="text-center flex-1">
                         <span className="font-medium">{course.duration_hours}</span> ساعة
                       </div>
                     </div>
 
-                    {/* Price */}
-                    <div className="mb-4">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-4"></div>
+                    <div className="mb-4 text-center">
+                      <span className="text-xl font-extrabold text-gray-900 dark:text-white">
                         {course.is_free ? 'مجاني' : `${course.price} ريال`}
                       </span>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex space-x-2 space-x-reverse">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex gap-2">
                         <Link href={`/dashboard/teacher/courses/${course.id}`}>
                           <button className="btn-secondary btn-sm">
                             <EyeIcon className="h-4 w-4" />
@@ -239,8 +239,7 @@ export default function TeacherCoursesPage() {
                           </button>
                         </Link>
                       </div>
-
-                      <div className="flex space-x-2 space-x-reverse">
+                      <div className="flex gap-3">
                         {course.status === 'draft' && (
                           <button
                             onClick={() => handlePublishCourse(course.id)}

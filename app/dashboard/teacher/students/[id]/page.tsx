@@ -24,8 +24,8 @@ interface Enrollment {
     id: string
     title: string
     description: string
-    thumbnail_url: string
-  }
+    thumbnail_url: string | null
+  } | null
   enrolled_at: string
   completed_at: string | null
   progress: number
@@ -87,13 +87,16 @@ export default function StudentDetailPage() {
             .eq('course.teacher_id', user.id)
           
           if (!enrollmentsError && enrollmentsData) {
-            const processedEnrollments = enrollmentsData.map(enrollment => ({
-              id: enrollment.id,
-              course: enrollment.course,
-              enrolled_at: enrollment.enrolled_at,
-              completed_at: enrollment.completed_at,
-              progress: enrollment.completed_at ? 100 : 0 // Simplified progress calculation
-            }))
+            const processedEnrollments = enrollmentsData
+              .filter((enrollment: any) => !!enrollment.course)
+              .map((enrollment: any) => ({
+                id: enrollment.id,
+                course: enrollment.course,
+                enrolled_at: enrollment.enrolled_at,
+                completed_at: enrollment.completed_at,
+                // Simplified progress calculation
+                progress: enrollment.completed_at ? 100 : 0
+              }))
             
             setEnrollments(processedEnrollments)
             
@@ -279,7 +282,7 @@ export default function StudentDetailPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                               <div className="flex-shrink-0">
-                                {enrollment.course.thumbnail_url ? (
+                                {enrollment.course && enrollment.course.thumbnail_url ? (
                                   <img 
                                     src={enrollment.course.thumbnail_url} 
                                     alt={enrollment.course.title}
@@ -294,10 +297,10 @@ export default function StudentDetailPage() {
                               
                               <div className="flex-1">
                                 <h4 className="font-medium text-gray-900 dark:text-white">
-                                  {enrollment.course.title}
+                                  {enrollment.course?.title || 'دورة غير متاحة'}
                                 </h4>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                  {enrollment.course.description}
+                                  {enrollment.course?.description || 'لا توجد تفاصيل'}
                                 </p>
                                 <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                                   <span>تاريخ التسجيل: {new Date(enrollment.enrolled_at).toLocaleDateString('en-US')}</span>

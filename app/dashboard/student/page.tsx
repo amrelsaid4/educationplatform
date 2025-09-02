@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import DashboardLayout from "../../../components/layouts/DashboardLayout";
+import ProtectedRoute from "../../../components/auth/ProtectedRoute";
 import { 
   BookOpenIcon, 
   PlayIcon,
@@ -87,24 +88,27 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout userRole="student" userName={studentData.name} userAvatar={studentData.avatar}>
-        <div className="py-6 px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                ))}
+      <ProtectedRoute allowedRoles={['student']}>
+        <DashboardLayout userRole="student" userName={studentData.name} userAvatar={studentData.avatar}>
+          <div className="py-6 px-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </DashboardLayout>
+        </DashboardLayout>
+      </ProtectedRoute>
     )
   }
   return (
-    <DashboardLayout userRole="student" userName={studentData.name} userAvatar={studentData.avatar}>
+    <ProtectedRoute allowedRoles={['student']}>
+      <DashboardLayout userRole="student" userName={studentData.name} userAvatar={studentData.avatar}>
       <div className="py-6 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -236,6 +240,7 @@ export default function StudentDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

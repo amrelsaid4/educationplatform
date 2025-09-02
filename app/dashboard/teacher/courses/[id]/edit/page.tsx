@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeftIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { updateCourse, getCourseById } from '../../../../../../lib/course-utils'
-import { getCurrentUser } from '../../../../../../lib/auth-utils'
-import { supabase } from '../../../../../../lib/supabase'
+import { useAuth } from '../../../../../../components/providers/AuthProvider'
 import DashboardLayout from '../../../../../../components/layouts/DashboardLayout'
 
 export default function EditCoursePage() {
@@ -17,6 +16,7 @@ export default function EditCoursePage() {
   const [saving, setSaving] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [course, setCourse] = useState<any>(null)
+  const { user: authUser } = useAuth()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -30,29 +30,22 @@ export default function EditCoursePage() {
 
   useEffect(() => {
     loadData()
-  }, [courseId])
+  }, [courseId, authUser?.id])
 
   const loadData = async () => {
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
+      if (!authUser) {
+        router.push('/auth/login')
         return
       }
 
-      const { user: currentUser } = await getCurrentUser(user.id)
-      if (!currentUser) {
-        router.push('/login')
-        return
-      }
-
-      if (currentUser.role !== 'teacher') {
+      if (authUser.role !== 'teacher') {
         router.push('/dashboard')
         return
       }
 
-      setUser(currentUser)
+      setUser(authUser)
 
       const { data: courseData } = await getCourseById(courseId)
       if (!courseData) {
@@ -62,7 +55,7 @@ export default function EditCoursePage() {
       }
 
       // التحقق من أن المعلم يملك الكورس
-      if (courseData.teacher_id !== currentUser.id) {
+      if (courseData.teacher_id !== authUser.id) {
         alert('ليس لديك صلاحية لتعديل هذا الكورس')
         router.push('/dashboard/teacher/courses')
         return

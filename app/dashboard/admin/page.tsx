@@ -16,13 +16,15 @@ import {
   ShieldCheckIcon 
 } from "@heroicons/react/24/outline";
 import { getAllUsers, getDashboardStats, getPublishedCourses } from '../../../lib/course-utils'
-import { getCurrentUser } from '../../../lib/auth-utils'
+import { getCurrentUser } from '../../../lib/simple-auth'
 import { supabase } from '../../../lib/supabase'
 
 export default function AdminDashboard() {
+  console.log('AdminDashboard component loaded');
+  
   const [adminData, setAdminData] = useState({
     name: "مدير النظام",
-    avatar: undefined,
+    avatar: undefined as string | undefined,
     stats: {
       totalUsers: 0,
       totalCourses: 0,
@@ -41,17 +43,19 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('AdminDashboard useEffect triggered');
     loadDashboardData()
   }, [])
 
   const loadDashboardData = async () => {
+    console.log('loadDashboardData started');
     try {
       setLoading(true)
       
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { user: userProfile } = await getCurrentUser(user.id)
+        const userProfile = await getCurrentUser()
         
         // Get dashboard stats
         const { data: stats } = await getDashboardStats('admin')
@@ -104,6 +108,7 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error loading dashboard data:', error)
     } finally {
+      console.log('loadDashboardData completed');
       setLoading(false)
     }
   }
