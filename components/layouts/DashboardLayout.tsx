@@ -24,8 +24,8 @@ import {
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  userRole: "admin" | "teacher" | "student";
-  userName: string;
+  userRole?: "admin" | "teacher" | "student";
+  userName?: string;
   userAvatar?: string;
 }
 
@@ -60,28 +60,45 @@ const navigationItems = {
     { name: "الكورسات", href: "/dashboard/admin/courses", icon: BookOpenIcon },
     { name: "جميع الكورسات", href: "/courses", icon: BookOpenIcon },
     { name: "التحليلات", href: "/dashboard/admin/analytics", icon: ChartBarIcon },
+    { name: "المدفوعات", href: "/dashboard/admin/payments", icon: ChartBarIcon },
     { name: "الإعدادات", href: "/dashboard/admin/settings", icon: CogIcon },
   ],
 };
 
 export default function DashboardLayout({
   children,
-  userRole = "student",
-  userName = "",
+  userRole,
+  userName,
   userAvatar,
 }: DashboardLayoutProps) {
+  const { user } = useAuth();
+  const effectiveRole = user?.role || userRole || "student";
+  const effectiveName = user?.name || userName || "";
+  const effectiveAvatar = user?.avatar_url || userAvatar;
+
+  console.log('DashboardLayout: Loading with role=', effectiveRole, 'userName=', effectiveName);
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const { signOut } = useAuth();
 
-  const navigation = navigationItems[userRole] || [];
+  const navigation = navigationItems[effectiveRole] || [];
+
+  // Compute role-based destinations for profile and settings
+  const profileHref = effectiveRole === 'student'
+    ? `/dashboard/${effectiveRole}/profile`
+    : `/dashboard/${effectiveRole}/settings`;
+  const settingsHref = effectiveRole === 'student'
+    ? `/dashboard/student/profile`
+    : `/dashboard/${effectiveRole}/settings`;
 
   const handleSignOut = async () => {
     await signOut();
     window.location.href = "/";
   };
 
+  console.log('DashboardLayout: Rendering layout');
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900" dir="rtl">
       {/* Mobile sidebar */}
@@ -192,15 +209,15 @@ export default function DashboardLayout({
           <div className="flex-1 px-4 flex justify-between items-center">
             <div className="flex items-center space-x-4 space-x-reverse">
               {/* User info */}
-              <div className="flex items-center space-x-3 space-x-reverse">
+              <div className="relative flex items-center space-x-3 space-x-reverse">
                 <Image
                   className="h-8 w-8 rounded-full"
-                  src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=49BBBD&color=ffffff`}
-                  alt={userName || 'User'}
+                  src={effectiveAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(effectiveName || 'User')}&background=49BBBD&color=ffffff`}
+                  alt={effectiveName || 'User'}
                   width={32}
                   height={32}
                 />
-                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{userName || 'User'}</span>
+                <span className="text-gray-700 dark:text-gray-300 text-sm font-medium">{effectiveName || 'User'}</span>
                 <button
                   type="button"
                   className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#49BBBD]"
@@ -208,6 +225,32 @@ export default function DashboardLayout({
                 >
                   <ChevronDownIcon className="h-4 w-4" />
                 </button>
+
+                {/* User dropdown menu anchored to the trigger */}
+                {userMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
+                    <Link
+                      href={profileHref}
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      الملف الشخصي
+                    </Link>
+                    <Link
+                      href={settingsHref}
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      الإعدادات
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-right px-4 py-2 text-sm text-[#ef4444] hover:bg-[#ef4444]/10"
+                    >
+                      تسجيل الخروج
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -218,31 +261,7 @@ export default function DashboardLayout({
           </div>
         </div>
 
-        {/* User dropdown menu */}
-        {userMenuOpen && (
-          <div className="absolute top-16 left-4 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
-            <Link
-              href="/dashboard/profile"
-              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => setUserMenuOpen(false)}
-            >
-              الملف الشخصي
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => setUserMenuOpen(false)}
-            >
-              الإعدادات
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="block w-full text-right px-4 py-2 text-sm text-[#ef4444] hover:bg-[#ef4444]/10"
-            >
-              تسجيل الخروج
-            </button>
-          </div>
-        )}
+        
 
         {/* Page content */}
         <main className="flex-1">

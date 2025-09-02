@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase } from './supabase-config'
 
 export interface Course {
   id: string
